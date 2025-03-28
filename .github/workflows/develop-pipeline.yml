@@ -16,7 +16,10 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Build docker image
         working-directory: ./server
-        run: docker build -t nsoteropoulos/asiimedical-server .
+        run: docker build -t nsoteropoulos/asiimedical-server-test .
+      - name: Delete docker image after successfull build
+        working-directory: ./server
+        run: docker image rm nsoteropoulos/asiimedical-server-test .
 
   build-client:
     runs-on: ubuntu-latest
@@ -28,5 +31,8 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Build docker image
         working-directory: ./client
-        run: docker build -t nsoteropoulos/asiimedical-client .
+        run: docker build -t nsoteropoulos/asiimedical-client-test .
+      - name: Delete docker image after successfull build
+        working-directory: ./client
+        run: docker image rm nsoteropoulos/asiimedical-client-test .
 
