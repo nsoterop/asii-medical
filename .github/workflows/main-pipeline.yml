@@ -1,0 +1,72 @@
+name: Deploy application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs: 
+  build-server:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Create .env file
+        working-directory: ./server
+        run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
+      - name: Build docker image
+        working-directory: ./server
+        run: docker build -t nsoteropoulos/asiimedical-server -f Dockerfile.prod .
+      - name: Publish server image to docker hub
+        working-directory: ./server
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker images
+          docker push nsoteropoulos/asiimedical-server
+
+  build-client:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Create .env file
+        working-directory: ./client
+        run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
+      - name: Build docker image
+        working-directory: ./client
+        run: docker build -t nsoteropoulos/asiimedical-client -f Dockerfile.prod .
+      - name: Publish client image to docker hub
+        working-directory: ./client
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker images
+          docker push nsoteropoulos/asiimedical-client
+
+  deploy-server:
+    needs: 
+      - build-server
+    runs-on: self-hosted
+    steps:
+      - name: Login to docker hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Pull server image from docker hub
+        run: docker pull nsoteropoulos/asiimedical-server
+      - name: Delete old container
+        run: docker rm -f asiimedical-server
+      - name: Run docker container
+        run: docker run -d -p 3000:3000 --name asiimedical-server nsoteropoulos/asiimedical-server
+  
+  deploy-client:
+    needs: 
+      - build-client
+    runs-on: self-hosted
+    steps:
+      - name: Login to docker hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+      - name: Pull server image from docker hub
+        run: docker pull nsoteropoulos/asiimedical-client
+      - name: Delete old container
+        run: docker rm -f asiimedical-client
+      - name: Run docker container
+        run: docker run -d -p 4000:4000 --name asiimedical-client nsoteropoulos/asiimedical-client
+
