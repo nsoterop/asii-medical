@@ -1,4 +1,4 @@
-name: Deploy application
+name: DEV Pipeline
 
 on:
   push:

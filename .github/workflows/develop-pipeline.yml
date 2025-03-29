@@ -1,9 +1,10 @@
-name: Deploy application
+name: PROD Pipeline
 
 on:
   push:
     branches:
-      - develop
+      - '*'
+      - '!main'
 
 jobs: 
   build-server:
@@ -19,7 +20,7 @@ jobs:
         run: docker build -t nsoteropoulos/asiimedical-server-test .
       - name: Delete docker image after successfull build
         working-directory: ./server
-        run: docker image rm nsoteropoulos/asiimedical-server-test .
+        run: docker image rm nsoteropoulos/asiimedical-server-test
 
   build-client:
     runs-on: ubuntu-latest
@@ -34,5 +35,5 @@ jobs:
         run: docker build -t nsoteropoulos/asiimedical-client-test .
       - name: Delete docker image after successfull build
         working-directory: ./client
-        run: docker image rm nsoteropoulos/asiimedical-client-test .
+        run: docker image rm nsoteropoulos/asiimedical-client-test
 
