@@ -1,5 +1,9 @@
 name: Build
 
+default:
+  tags:
+    - ec2-instance
+
 on:
   push:
     branches:
