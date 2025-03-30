@@ -1,9 +1,5 @@
 name: PROD Pipeline
 
-default:
-  tags:
-    - PROD
-
 on:
   push:
     branches:
@@ -15,8 +11,8 @@ stages:
 
 jobs: 
   build-server:
+    runs-on: [self-hosted, linux, PROD]
     stage: build
-    runs-on: prod
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -34,7 +30,7 @@ jobs:
           docker push nsoteropoulos/asiimedical-server
 
   build-client:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, PROD]
     stage: build
     steps:
       - name: Checkout Source
@@ -55,7 +51,7 @@ jobs:
   deploy-server:
     needs: 
       - build-server
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, PROD]
     stage: deploy
     steps:
       - name: Login to docker hub
@@ -70,7 +66,7 @@ jobs:
   deploy-client:
     needs: 
       - build-client
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, PROD]
     stage: deploy
     steps:
       - name: Login to docker hub

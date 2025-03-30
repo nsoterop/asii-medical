@@ -9,7 +9,7 @@ on:
 
 jobs: 
   build-server:
-    runs-on: ec2-instance
+    runs-on: [self-hosted, linux, DEV]
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
         run: docker image rm nsoteropoulos/asiimedical-server-test
 
   build-client:
-    runs-on: ec2-instance
+    runs-on: [self-hosted, linux, DEV]
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4

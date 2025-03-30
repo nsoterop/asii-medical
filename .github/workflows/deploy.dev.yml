@@ -1,9 +1,5 @@
 name: PROD Pipeline
 
-default:
-  tags:
-    - ec2-instance
-
 on:
   push:
     branches:
@@ -15,7 +11,7 @@ stages:
 
 jobs: 
   build-server:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, DEV]
     stage: build
     steps:
       - name: Checkout Source
@@ -34,7 +30,7 @@ jobs:
           docker push nsoteropoulos/asiimedical-server
 
   build-client:
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, DEV]
     stage: build
     steps:
       - name: Checkout Source
@@ -55,7 +51,7 @@ jobs:
   deploy-server:
     needs: 
       - build-server
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, DEV]
     stage: deploy
     steps:
       - name: Login to docker hub
@@ -70,7 +66,7 @@ jobs:
   deploy-client:
     needs: 
       - build-client
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, DEV]
     stage: deploy
     steps:
       - name: Login to docker hub
