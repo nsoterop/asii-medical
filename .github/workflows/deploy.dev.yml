@@ -11,7 +11,7 @@ stages:
 
 jobs: 
   build-server:
-    runs-on: [self-hosted, linux, DEV]
+    runs-on: ubuntu-latest
     stage: build
     steps:
       - name: Checkout Source
@@ -30,7 +30,7 @@ jobs:
           docker push nsoteropoulos/asiimedical-server
 
   build-client:
-    runs-on: [self-hosted, linux, DEV]
+    runs-on: ubuntu-latest
     stage: build
     steps:
       - name: Checkout Source
