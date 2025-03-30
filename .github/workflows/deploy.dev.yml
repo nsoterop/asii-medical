@@ -1,13 +1,22 @@
 name: PROD Pipeline
 
+default:
+  tags:
+    - ec2-instance
+
 on:
   push:
     branches:
       - develop
 
+stages:
+  - build
+  - deploy
+
 jobs: 
   build-server:
     runs-on: ubuntu-latest
+    stage: build
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -16,7 +25,7 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Build docker image
         working-directory: ./server
-        run: docker build -t nsoteropoulos/asiimedical-server -f Dockerfile.prod .
+        run: docker build -t nsoteropoulos/asiimedical-server .
       - name: Publish server image to docker hub
         working-directory: ./server
         run: |
@@ -26,6 +35,7 @@ jobs:
 
   build-client:
     runs-on: ubuntu-latest
+    stage: build
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -34,7 +44,7 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Build docker image
         working-directory: ./client
-        run: docker build -t nsoteropoulos/asiimedical-client -f Dockerfile.prod .
+        run: docker build -t nsoteropoulos/asiimedical-client .
       - name: Publish client image to docker hub
         working-directory: ./client
         run: |
@@ -46,6 +56,7 @@ jobs:
     needs: 
       - build-server
     runs-on: self-hosted
+    stage: deploy
     steps:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
@@ -60,6 +71,7 @@ jobs:
     needs: 
       - build-client
     runs-on: self-hosted
+    stage: deploy
     steps:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
