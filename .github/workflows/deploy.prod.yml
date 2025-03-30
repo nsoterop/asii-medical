@@ -35,7 +35,7 @@ jobs:
           docker push nsoteropoulos/asiimedical-server
 
   build-client:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     stage: build
     steps:
       - name: Checkout Source

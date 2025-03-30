@@ -1,9 +1,5 @@
 name: Build
 
-default:
-  tags:
-    - ec2-instance
-
 on:
   push:
     branches:
@@ -13,7 +9,7 @@ on:
 
 jobs: 
   build-server:
-    runs-on: ubuntu-latest
+    runs-on: ec2-instance
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -28,7 +24,7 @@ jobs:
         run: docker image rm nsoteropoulos/asiimedical-server-test
 
   build-client:
-    runs-on: ubuntu-latest
+    runs-on: ec2-instance
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
