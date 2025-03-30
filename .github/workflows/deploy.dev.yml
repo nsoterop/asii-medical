@@ -1,5 +1,9 @@
 name: PROD Pipeline
 
+default:
+  tags:
+    - ec2-instance
+
 on:
   push:
     branches:

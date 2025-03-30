@@ -1,5 +1,9 @@
 name: PROD Pipeline
 
+default:
+  tags:
+    - PROD
+
 on:
   push:
     branches:
@@ -11,6 +15,7 @@ stages:
 
 jobs: 
   build-server:
+    stage: build
     runs-on: ubuntu-latest
     stage: build
     steps:
