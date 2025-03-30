@@ -5,14 +5,9 @@ on:
     branches:
       - develop
 
-stages:
-  - build
-  - deploy
-
 jobs: 
   build-server:
     runs-on: ubuntu-latest
-    stage: build
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -31,7 +26,6 @@ jobs:
 
   build-client:
     runs-on: ubuntu-latest
-    stage: build
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
