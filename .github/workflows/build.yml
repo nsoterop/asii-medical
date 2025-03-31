@@ -54,7 +54,7 @@ jobs:
         run: npm run build
 
   test-server:
-    uns-on: ubuntu-latest
+    runs-on: ubuntu-latest
     needs: build-server
     steps:
       - name: Test server
@@ -62,7 +62,7 @@ jobs:
         run: npm run test
 
   test-client:
-    uns-on: ubuntu-latest
+    runs-on: ubuntu-latest
     needs: build-client
     steps:
       - name: Test client
