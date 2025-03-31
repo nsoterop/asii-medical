@@ -1,0 +1,38 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Client Development",
+            "type": "node",
+            "request": "launch",
+            "program": "/Users/nicksoteropoulos/Code/asii-medical/client/node_modules/.bin/next",
+            "runtimeArgs": ["--inspect"],
+            "cwd": "/Users/nicksoteropoulos/Code/asii-medical/client",
+            "serverReadyAction": {
+                "action": "debugWithChrome",
+                "killOnServerStop": true,
+                "pattern": "- Local:.+(https?://.+)",
+                "uriFormat": "%s",
+                "webRoot": "${workspaceFolder}"
+            }
+        },
+        {
+            "name": "Server Development",
+            "type": "node",
+            "request": "launch",
+            "program": "/Users/nicksoteropoulos/Code/asii-medical/server/node_modules/.bin/next",
+            "runtimeArgs": ["--inspect"],
+            "cwd": "/Users/nicksoteropoulos/Code/asii-medical/server",
+            "serverReadyAction": {
+                "action": "debugWithChrome",
+                "killOnServerStop": true,
+                "pattern": "- Local:.+(https?://.+)",
+                "uriFormat": "%s",
+                "webRoot": "${workspaceFolder}"
+            }
+        }
+    ]
+}

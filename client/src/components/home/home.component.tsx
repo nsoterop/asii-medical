@@ -1,3 +1,3 @@
 export default function HomeComponent() {
-  return <div>HOME COMPONENT</div>;
+  return <h1>HOME COMPONENT</h1>;
 }
