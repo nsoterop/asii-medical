@@ -1,5 +1,3 @@
 export default function HomeComponent() {
-    return (
-        <div>HOME COMPONENT</div>
-    );
+  return <div>HOME COMPONENT</div>;
 }
