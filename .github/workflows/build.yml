@@ -8,6 +8,9 @@ on:
       - '!main'
   pull_request:
     types: [opened, reopened]
+    branches:
+      - '**'
+      - '!main'
 
 jobs: 
   build-server:
@@ -50,3 +53,18 @@ jobs:
         working-directory: ./client
         run: npm run build
 
+  test-server:
+    uns-on: ubuntu-latest
+    needs: build-server
+    steps:
+      - name: Test server
+        working-directory: ./server
+        run: npm run test
+
+  test-client:
+    uns-on: ubuntu-latest
+    needs: build-client
+    steps:
+      - name: Test client
+        working-directory: ./client
+        run: npm run test
