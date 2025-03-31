@@ -16,6 +16,9 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN npm run lint:check
+RUN npm run format:check
+
 RUN npm run build
 
 FROM base AS runner
