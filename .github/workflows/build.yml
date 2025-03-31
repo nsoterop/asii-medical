@@ -58,7 +58,6 @@ jobs:
     needs: build-server
     steps:
       - name: Test server
-        working-directory: ./server
         run: npm run test
 
   test-client:
@@ -66,5 +65,4 @@ jobs:
     needs: build-client
     steps:
       - name: Test client
-        working-directory: ./client
         run: npm run test
