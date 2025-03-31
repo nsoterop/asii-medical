@@ -16,12 +16,14 @@ jobs:
       - name: Create .env file
         working-directory: ./server
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
-      - name: Build docker image
+      - name: Run lint and formatting checks
         working-directory: ./server
-        run: docker build -t nsoteropoulos/asiimedical-server-test .
-      - name: Delete docker image after successfull build
+        run: |
+          npm run format:check
+          npm run lint:check
+      - name: Build project
         working-directory: ./server
-        run: docker image rm nsoteropoulos/asiimedical-server-test
+        run: npm run build
 
   build-client:
     runs-on: ubuntu-latest
@@ -31,10 +33,12 @@ jobs:
       - name: Create .env file
         working-directory: ./client
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
-      - name: Build docker image
+      - name: Run lint and formatting checks
         working-directory: ./client
-        run: docker build -t nsoteropoulos/asiimedical-client-test .
-      - name: Delete docker image after successfull build
+        run: |
+          npm run format:check
+          npm run lint:check
+      - name: Build project
         working-directory: ./client
-        run: docker image rm nsoteropoulos/asiimedical-client-test
+        run: npm run build
 
