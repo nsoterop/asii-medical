@@ -8,11 +8,12 @@ import nextJest from 'next/jest.js'
  
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: './',
+  dir: '../client',
 })
 
 const config: Config = {
   clearMocks: true,
+  testPathIgnorePatterns: ["<rootDir>/test/e2e-tests"],
 
   collectCoverage: true,
   collectCoverageFrom: [
@@ -21,6 +22,7 @@ const config: Config = {
     '!**/node_modules/**',
     '!<rootDir>/out/**',
     '!<rootDir>/.next/**',
+    '!<rootDir>/test/e2e-tests/**',
     '!<rootDir>/*.config.js',
   ],
   coverageDirectory: "coverage",
