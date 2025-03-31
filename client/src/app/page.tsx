@@ -1,5 +1,5 @@
-import HomeComponent from "@/components/home/home.component";
-import FooterComponent from "@/components/footer/footer.component";
+import HomeComponent from '@/components/home/home.component';
+import FooterComponent from '@/components/footer/footer.component';
 
 export default function Home() {
   return (

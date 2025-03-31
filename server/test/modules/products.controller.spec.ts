@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ProductsController } from './products.controller';
+import { ProductsController } from '../../src/modules/products/products.controller';
+import { ProductsService } from '../../src/modules/products/products.service';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -7,12 +8,13 @@ describe('ProductsController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProductsController],
+      providers: [ProductsService],
     }).compile();
 
     controller = module.get<ProductsController>(ProductsController);
   });
 
   it('should be defined', () => {
-    expect(controller).toBeDefined();
+    expect(controller.getHello()).toBe('A message from getProducts()');
   });
 });
