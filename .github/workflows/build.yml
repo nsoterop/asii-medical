@@ -18,7 +18,7 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Install dependencies
         working-directory: ./server
-        run: npm run ci
+        run: npm ci
       - name: Run lint and formatting checks
         working-directory: ./server
         run: |
@@ -38,7 +38,7 @@ jobs:
         run: echo "TEST_VAL=${{secrets.TEST_VAL}}" >> .env && echo "SITE_URL=${{secrets.SITE_URL}}" >> .env
       - name: Install dependencies
         working-directory: ./client
-        run: npm run ci
+        run: npm ci
       - name: Run lint and formatting checks
         working-directory: ./client
         run: |
