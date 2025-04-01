@@ -1,11 +1,6 @@
-name: Build
+name: PR Build
 
 on:
-  push:
-    branches:
-      - '**'
-      - '!develop'
-      - '!main'
   pull_request:
     types: [opened, reopened]
     branches:
