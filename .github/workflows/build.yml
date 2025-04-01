@@ -28,7 +28,7 @@ jobs:
         run: |
           npm run format:check
           npm run lint:check
-          
+
       - name: Build project
         working-directory: ./server
         run: npm run build
@@ -38,9 +38,6 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
-
-      - name: Create .env file
-        working-directory: ./client
         
       - name: Install dependencies
         working-directory: ./client
@@ -62,9 +59,11 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+
       - name: Install dependencies
         working-directory: ./server
         run: npm ci
+
       - name: Test server
         working-directory: ./server
         run: npm run test
@@ -75,9 +74,11 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+
       - name: Install dependencies
         working-directory: ./client
         run: npm ci
+        
       - name: Test client
         working-directory: client
         run: npm run test
