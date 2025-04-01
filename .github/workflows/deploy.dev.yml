@@ -80,6 +80,11 @@ jobs:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Backup docker image
+        run: |
+          docker image rm nsoteropoulos/asiimedical-server:backup
+          docker image tag nsoteropoulos/asiimedical-server:latest nsoteropoulos/asiimedical-server:backup
+
       - name: Pull server image from docker hub
         run: docker pull nsoteropoulos/asiimedical-server
         
@@ -104,6 +109,11 @@ jobs:
     steps:
       - name: Login to docker hub
         run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Backup docker image
+        run: |
+          docker image rm nsoteropoulos/asiimedical-server:backup
+          docker image tag nsoteropoulos/asiimedical-server:latest nsoteropoulos/asiimedical-server:backup
 
       - name: Pull server image from docker hub
         run: docker pull nsoteropoulos/asiimedical-client
