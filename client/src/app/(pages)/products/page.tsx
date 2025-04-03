@@ -1,3 +1,7 @@
-export default function Products() {
-  return <div>Products</div>;
+import ProductsComponent from '@/components/products/products';
+
+function Products() {
+  return <ProductsComponent />;
 }
+
+export default Products;
