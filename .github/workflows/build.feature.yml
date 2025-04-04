@@ -37,6 +37,12 @@ jobs:
       - name: Install dependencies
         working-directory: ./client
         run: npm ci
+
+      - name: Create env file
+        run: |
+          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
+          echo "API_BASE_URL=${{ vars.API_BASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
         
       - name: Run lint and formatting checks
         working-directory: ./client
