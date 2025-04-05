@@ -30,6 +30,7 @@ jobs:
 
   build-client-feature:
     runs-on: ubuntu-latest
+    environment: DEV
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -37,6 +38,13 @@ jobs:
       - name: Install dependencies
         working-directory: ./client
         run: npm ci
+
+      - name: Create env file
+        working-directory: ./client
+        run: |
+          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
         
       - name: Run lint and formatting checks
         working-directory: ./client
