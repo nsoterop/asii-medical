@@ -27,12 +27,6 @@ jobs:
       - name: Delete old container
         run: docker rm -f asiimedical-server
 
-      - name: Create env file
-        run: |
-          echo "TEST_VAL=${{ secrets.TEST_VAL }}" >> .env
-          echo "SITE_URL=${{ secrets.SITE_URL }}" >> .env
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
-
       - name: Run docker container
         run: docker run -d -p 3000:3000 --env-file .env --name asiimedical-server nsoteropoulos/asiimedical-server
   
@@ -56,12 +50,6 @@ jobs:
 
       - name: Delete old container
         run: docker rm -f asiimedical-client
-
-      - name: Create env file
-        run: |
-          echo "TEST_VAL=${{ secrets.TEST_VAL }}" >> .env
-          echo "SITE_URL=${{ secrets.SITE_URL }}" >> .env
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
 
       - name: Run docker container
         run: docker run -d -p 4000:4000 --env-file .env --name asiimedical-client nsoteropoulos/asiimedical-client
