@@ -117,12 +117,11 @@ jobs:
 
       - name: Create env file
         run: |
+          rm -f .env
           echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
           echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
           echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
 
       - name: Run docker container
-        run: |
-          cat .env
-          docker run -d -p 3000:3000 --env-file .env --name asiimedical-client nsoteropoulos/asiimedical-client
+        run: docker run -d -p 3000:3000 --env-file .env --name asiimedical-client nsoteropoulos/asiimedical-client
 
