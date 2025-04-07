@@ -1,6 +1,6 @@
 import logger from '@/utils/logger';
 
-const baseApiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api`;
+const baseApiUrl = `${process.env.API_BASE_URL}/api`;
 
 async function get(endpoint: string) {
 

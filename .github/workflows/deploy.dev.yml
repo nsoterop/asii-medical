@@ -29,13 +29,6 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      - name: Create env file
-        working-directory: ./client
-        run: |
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
-          echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
-
       - name: Build docker image
         working-directory: ./client
         run: docker build -t nsoteropoulos/asiimedical-client .
@@ -99,7 +92,7 @@ jobs:
         run: docker rm -f asiimedical-server
 
       - name: Run docker container
-        run: docker run -d -p 3000:3000 --env-file .env --name asiimedical-server nsoteropoulos/asiimedical-server
+        run: docker run -d -p 3000:3000 --name asiimedical-server nsoteropoulos/asiimedical-server
   
   deploy-client:
     needs: 
@@ -121,6 +114,13 @@ jobs:
 
       - name: Delete old container
         run: docker rm -f asiimedical-client
+
+      - name: Create env file
+        working-directory: ./client
+        run: |
+          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
+          echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
 
       - name: Run docker container
         run: docker run -d -p 4000:4000 --env-file .env --name asiimedical-client nsoteropoulos/asiimedical-client
