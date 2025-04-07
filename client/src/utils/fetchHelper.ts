@@ -4,11 +4,12 @@ const baseApiUrl = `${process.env.API_BASE_URL}/api`;
 
 async function get(endpoint: string) {
 
-    logger.info(`Fetching data from api - /api/${endpoint}`);
+    const url = `${baseApiUrl}/${endpoint}`
+    logger.info(`Fetching data from api - ${url}`);
     
     try {
         const response = await fetch(
-            `${baseApiUrl}/${endpoint}`,
+            url,
             { cache: 'no-store' }
         )
 
