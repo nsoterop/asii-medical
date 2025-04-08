@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 
-const PUBLIC_URL = "http://localhost:3000";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -8,7 +7,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.API_BASE_URL || PUBLIC_URL}/api/:path*`,
+        destination: `http://ec2-3-95-177-173.compute-1.amazonaws.com:3001/api/:path*`,
       },
     ]
   },
