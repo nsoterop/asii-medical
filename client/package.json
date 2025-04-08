@@ -13,7 +13,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --collectCoverageFrom='src/**/*.{ts,tsx}'",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright install --with-deps chromium && playwright test"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.3",
