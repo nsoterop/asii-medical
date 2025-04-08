@@ -5,7 +5,39 @@ on:
     branches:
       - develop
 
-jobs: 
+jobs:
+  build-server-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Build docker image
+        working-directory: ./server
+        run: docker build -t nsoteropoulos/asiimedical-server .
+
+      - name: Publish server image to docker hub
+        working-directory: ./server
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push nsoteropoulos/asiimedical-server
+
+  build-client-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Build docker image
+        working-directory: ./client
+        run: docker build -t nsoteropoulos/asiimedical-client .
+
+      - name: Publish client image to docker hub
+        working-directory: ./client
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push nsoteropoulos/asiimedical-client
+
   deploy-server:
     runs-on: [self-hosted, linux, DEV]
     environment: DEV

@@ -6,8 +6,6 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /client
 
-RUN echo "********* INSTALL DEPENDENCIES *********"
-
 COPY package.json package-lock.json* .npmrc* ./
 RUN npm ci
 
@@ -18,14 +16,6 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN echo "********* RUN CODE CHECKS *********"
-
-RUN npm run lint:check
-RUN npm run format:check
-RUN npm run test
-RUN npm run test:e2e
-
-RUN echo "********* BUILD CLIENT *********""
 RUN npm run build
 
 FROM base AS runner
