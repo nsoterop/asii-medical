@@ -9,9 +9,9 @@ async function ProductsComponent() {
     return <div>No products available</div>;
   } else {
     return (
-      <div>
+      <div className='d-flex'>
         {products.map((product: Product) => (
-          <div key={product.id}>{product.name}</div>
+          <button className='text-3xl font-bold underline' key={product.id}>{product.name}</button>
         ))}
       </div>
     );
