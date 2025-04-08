@@ -40,6 +40,7 @@ jobs:
 
   deploy-server:
     runs-on: [self-hosted, linux, DEV]
+    needs: build-server-image
     environment: DEV
     steps:
       - name: Login to docker hub
@@ -61,6 +62,7 @@ jobs:
   
   deploy-client:
     runs-on: [self-hosted, linux, DEV]
+    needs: build-client-image
     environment: DEV
     steps:
       - name: Login to docker hub
