@@ -1,8 +1,10 @@
 import logger from '@/utils/logger';
 
+const baseApiUrl = `${process.env.API_BASE_URL}`;
+
 async function get(endpoint: string) {
 
-    const url = `/api/${endpoint}`
+    const url = `${baseApiUrl}${endpoint}`
     logger.info(`Fetching data from api - ${url}`);
     
     try {
