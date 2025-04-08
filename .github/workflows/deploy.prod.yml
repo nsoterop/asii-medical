@@ -42,8 +42,8 @@ jobs:
 
       - name: Backup docker image
         run: |
-          docker image rm nsoteropoulos/asiimedical-server:backup
-          docker image tag nsoteropoulos/asiimedical-server:latest nsoteropoulos/asiimedical-server:backup
+          docker rmi nsoteropoulos/asiimedical-client:backup || true
+          docker image tag nsoteropoulos/asiimedical-client:latest nsoteropoulos/asiimedical-client:backup
 
       - name: Pull server image from docker hub
         run: docker pull nsoteropoulos/asiimedical-client
