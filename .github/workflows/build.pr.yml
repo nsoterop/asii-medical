@@ -8,79 +8,34 @@ on:
       - '!main'
 
 jobs: 
-  build-server:
+  build-server-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Build docker image
         working-directory: ./server
-        run: npm ci
+        run: docker build -t nsoteropoulos/asiimedical-server .
 
-      - name: Run lint and formatting checks
+      - name: Publish server image to docker hub
         working-directory: ./server
         run: |
-          npm run format:check
-          npm run lint:check
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push nsoteropoulos/asiimedical-server
 
-      - name: Build project
-        working-directory: ./server
-        run: npm run build
-
-  build-client:
+  build-client-image:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
-        
-      - name: Install dependencies
-        working-directory: ./client
-        run: npm ci
 
-      - name: Create env file
+      - name: Build docker image
+        working-directory: ./client
+        run: docker build -t nsoteropoulos/asiimedical-client .
+
+      - name: Publish client image to docker hub
         working-directory: ./client
         run: |
-          echo "NODE_ENV=${{ vars.NODE_ENV }}" >> .env
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env
-          echo "NEXT_PUBLIC_SITE_URL=${{ vars.NEXT_PUBLIC_SITE_URL }}" >> .env
-        
-      - name: Run lint and formatting checks
-        working-directory: ./client
-        run: |
-          npm run format:check
-          npm run lint:check
-
-      - name: Build project
-        working-directory: ./client
-        run: npm run build
-
-  test-server:
-    runs-on: ubuntu-latest
-    needs: build-server
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        working-directory: ./server
-        run: npm ci
-
-      - name: Test server
-        working-directory: ./server
-        run: npm run test
-
-  test-client:
-    runs-on: ubuntu-latest
-    needs: build-client
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        working-directory: ./client
-        run: npm ci
-        
-      - name: Test client
-        working-directory: client
-        run: npm run test
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker push nsoteropoulos/asiimedical-client
