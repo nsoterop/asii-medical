@@ -51,7 +51,7 @@ jobs:
 
   test-server:
     runs-on: ubuntu-latest
-    needs: build-server-feature
+    needs: build-server
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -66,7 +66,7 @@ jobs:
 
   test-client:
     runs-on: ubuntu-latest
-    needs: build-client-feature
+    needs: build-client
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
