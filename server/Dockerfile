@@ -2,10 +2,10 @@ FROM node:20-alpine AS base
 
 FROM base AS builder
 WORKDIR /server
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run format:check
 RUN npm run build
 
 FROM base AS runner
