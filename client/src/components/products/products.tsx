@@ -1,5 +1,12 @@
-import { Product } from '@/types/product.interface';
 import fetchHelper from '@/utils/fetchHelper';
+
+interface Product {
+  productId: string;
+  productName: string;
+  productDescription: string;
+  manufacturerId: string;
+  manufacturerName: string;
+}
 
 async function ProductsComponent() {
   const productsReponse = await fetchHelper.get('/api/products');
@@ -11,8 +18,11 @@ async function ProductsComponent() {
     return (
       <div className="d-flex">
         {products.map((product: Product) => (
-          <button className="text-3xl font-bold underline" key={product.id}>
-            {product.name}
+          <button
+            className="text-3xl font-bold underline"
+            key={product.productId}
+          >
+            {product.productName}
           </button>
         ))}
       </div>
