@@ -57,8 +57,13 @@ jobs:
       - name: Delete old container
         run: docker rm -f asiimedical-server
 
+      - name: Create env file
+        run: |
+          rm -f .env
+          echo "MONGODB_URI=mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@asii-medical.ledtl87.mongodb.net/Development?retryWrites=true&w=majority" >> .env
+
       - name: Run docker container
-        run: docker run -d -p 3001:3001 --name asiimedical-server nsoteropoulos/asiimedical-server
+        run: docker run -d -p 3001:3001 --env-file .env --name asiimedical-server nsoteropoulos/asiimedical-server
   
   deploy-client:
     runs-on: [self-hosted, linux, DEV]
