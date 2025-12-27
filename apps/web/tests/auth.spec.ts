@@ -11,10 +11,7 @@ test('logged-out users can access auth routes', async ({ page }) => {
 });
 
 test('logged-out users are redirected away from protected routes', async ({ page }) => {
-  await page.goto('/search');
-  await expect(page).toHaveURL('/');
-
-  await page.goto('/cart');
+  await page.goto('/account');
   await expect(page).toHaveURL('/');
 });
 

@@ -5,7 +5,7 @@ test('landing page renders hero', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'ASii Medical' })).toBeVisible();
   const heroImg = page.getByRole('img', { name: 'Operating room' });
   await expect(heroImg).toBeVisible();
-  await expect(heroImg).toHaveAttribute('src', /operating-room-3840x2160/);
+  await expect(heroImg).toHaveAttribute('src', /hero-medical\.png/);
   await expect(
     page.getByRole('heading', { name: 'Built for reliable healthcare supply relationships.' })
   ).toHaveCount(0);

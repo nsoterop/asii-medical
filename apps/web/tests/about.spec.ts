@@ -6,7 +6,9 @@ test('about page renders content', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Company Background' })).toBeVisible();
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await expect(page.getByTestId('site-footer')).toBeVisible();
-  await expect(page.getByText('ASii Medical Solutions llc')).toBeVisible();
+  await expect(
+    page.getByTestId('site-footer').getByText('ASii Medical Solutions llc')
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Facebook' })).toHaveAttribute(
     'href',
     'https://www.facebook.com/ASIIMedical/'

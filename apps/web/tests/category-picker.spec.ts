@@ -179,14 +179,22 @@ test('category picker supports search and drilldown', async ({ page }) => {
   await expect(modal).toBeVisible();
 
   await modal.locator('[data-testid="category-search"]').fill('Topicals');
-  const topicalsRow = modal
-    .locator('[data-testid="category-tree-row"]')
-    .filter({ hasText: 'Topicals' })
-    .first();
+  const topicalsRow = modal.locator(
+    '[data-category-path="Dental Merchandise>Anesthetics>Topicals"]'
+  );
   await expect(topicalsRow).toBeVisible();
-  await topicalsRow.locator('input[type="checkbox"]').click();
-  await expect(page).toHaveURL(/category=Dental%20Merchandise%3EAnesthetics%3ETopicals/);
+  await topicalsRow
+    .locator(':scope > div')
+    .first()
+    .getByRole('checkbox')
+    .click();
+  await expect(page.locator('[data-testid="category-option"]').filter({ hasText: 'Topicals' })).toBeVisible();
+  await expect(page).toHaveURL(
+    /category=Dental\+Merchandise%3EAnesthetics%3ETopicals|category=Dental%20Merchandise%3EAnesthetics%3ETopicals/
+  );
   await expect(page.getByText('Topical Gel')).toBeVisible();
+  await modal.getByRole('button', { name: 'Done' }).click();
+  await expect(modal).toHaveCount(0);
   const selectedSidebarRow = page
     .locator('[data-testid="category-option"]')
     .filter({ hasText: 'Topicals' })
@@ -197,32 +205,50 @@ test('category picker supports search and drilldown', async ({ page }) => {
   await page.locator('[data-testid="category-view-more"]').click();
   const modal2 = page.locator('[data-testid="category-modal"]');
   await expect(modal2.getByText('Dental Merchandise')).toBeVisible();
-  const dentalRow = modal2
-    .locator('[data-testid="category-tree-row"]')
-    .filter({ hasText: 'Dental Merchandise' })
-    .first();
-  await dentalRow.click();
-  await expect(modal2.getByText('Anesthetics')).toBeVisible();
+  const dentalRow = modal2.locator('[data-category-path="Dental Merchandise"]');
   const chevron = dentalRow.locator('[data-testid="category-tree-chevron"]').first();
+  const anestheticsRow = modal2.locator('[data-category-path="Dental Merchandise>Anesthetics"]');
+  const chevronClass = (await chevron.getAttribute('class')) || '';
+  if (!chevronClass.includes('treeChevronExpanded')) {
+    await dentalRow.locator(':scope > div').first().click();
+  }
+  await expect(anestheticsRow).toBeVisible();
   await expect(chevron).toHaveClass(/treeChevronExpanded/);
-  await dentalRow.click();
-  await expect(modal2.getByText('Anesthetics')).toHaveCount(0);
+
+  await dentalRow.locator(':scope > div').first().click();
+  await expect(anestheticsRow).toHaveCount(0);
   await expect(chevron).not.toHaveClass(/treeChevronExpanded/);
-  await dentalRow.click();
-  await expect(modal2.getByText('Anesthetics')).toBeVisible();
-  const anestheticsRow = modal2
-    .locator('[data-testid="category-tree-row"]')
-    .filter({ hasText: 'Anesthetics' })
+  await dentalRow.locator(':scope > div').first().click();
+  await expect(anestheticsRow).toBeVisible();
+
+  const anestheticsChevron = anestheticsRow
+    .locator('[data-testid="category-tree-chevron"]')
     .first();
-  await anestheticsRow.click();
+  const anestheticsChevronClass = (await anestheticsChevron.getAttribute('class')) || '';
+  if (!anestheticsChevronClass.includes('treeChevronExpanded')) {
+    await anestheticsRow.locator(':scope > div').first().click();
+  }
   await expect(modal2.getByText('Topicals')).toBeVisible();
 
-  await anestheticsRow.locator('input[type="checkbox"]').click();
-  await expect(page).toHaveURL(/category=Dental%20Merchandise%3EAnesthetics/);
-  await expect(page).toHaveURL(/category=Dental%20Merchandise%3EAnesthetics%3ETopicals/);
+  await anestheticsRow
+    .locator(':scope > div')
+    .first()
+    .getByRole('checkbox')
+    .click();
+  await expect(page).toHaveURL(
+    /category=Dental\+Merchandise%3EAnesthetics|category=Dental%20Merchandise%3EAnesthetics/
+  );
+  await expect(page).toHaveURL(
+    /category=Dental\+Merchandise%3EAnesthetics%3ETopicals|category=Dental%20Merchandise%3EAnesthetics%3ETopicals/
+  );
   await expect(modal2.getByText('Topicals')).toBeVisible();
 
-  const rowBox = await modal2.locator('[data-testid="category-tree-row"]').first().boundingBox();
+  const rowBox = await modal2
+    .locator('[data-testid="category-tree-row"]')
+    .first()
+    .locator(':scope > div')
+    .first()
+    .boundingBox();
   expect(rowBox).not.toBeNull();
   expect(rowBox?.height ?? 0).toBeLessThan(48);
 });

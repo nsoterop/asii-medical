@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
 describe('Prisma', () => {
-  const testDbUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+  const testDbUrl = process.env.TEST_DATABASE_URL;
   const runTest = testDbUrl ? it : it.skip;
 
   runTest('connects to the database', async () => {

@@ -421,7 +421,12 @@ export default function SearchPage() {
         return null;
       }
       return (
-        <div key={node.path} className={styles.categoryTreeRow} data-testid="category-tree-row">
+        <div
+          key={node.path}
+          className={styles.categoryTreeRow}
+          data-testid="category-tree-row"
+          data-category-path={node.path}
+        >
           <div
             className={styles.categoryTreeRowInner}
             onClick={() => {

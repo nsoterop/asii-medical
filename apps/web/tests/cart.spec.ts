@@ -58,5 +58,7 @@ test('cart page shows empty state', async ({ page }) => {
   });
   await page.goto('/cart');
   await expect(page.getByText('Your cart is empty.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Continue shopping' })).toBeVisible();
+  await expect(
+    page.getByText('Your cart is empty.').locator('..').getByRole('link', { name: 'Continue shopping' })
+  ).toBeVisible();
 });

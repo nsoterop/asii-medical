@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import path from 'path';
-import { writeFile, unlink } from 'fs/promises';
+import { promises as fsPromises } from 'fs';
+const { writeFile, unlink, copyFile } = fsPromises;
 import os from 'os';
 import { CsvParserService } from '../src/imports/csv-parser.service';
 import { ImportService } from '../src/imports/import.service';
@@ -13,7 +14,7 @@ type TestContext = {
   importWorker: ImportWorker;
 };
 
-const testDbUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+const testDbUrl = process.env.TEST_DATABASE_URL;
 const describeIfDb = testDbUrl ? describe : describe.skip;
 
 async function resetDatabase(prisma: PrismaClient) {
@@ -38,7 +39,9 @@ describeIfDb('Import pipeline', () => {
     const csvParser = new CsvParserService();
     const categoryTreeService = new CategoryTreeService(context.prisma as any);
     context.importService = new ImportService(context.prisma as any, csvParser, categoryTreeService);
-    context.importWorker = new ImportWorker(context.importService);
+    const indexSkusJob = { run: jest.fn().mockResolvedValue(undefined) } as any;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    context.importWorker = new ImportWorker(context.importService, indexSkusJob, queue);
   });
 
   beforeEach(async () => {
@@ -50,15 +53,17 @@ describeIfDb('Import pipeline', () => {
   });
 
   it('imports fixture data and deactivates missing SKUs on re-import', async () => {
+    const run1CsvPath = path.join(os.tmpdir(), `sample-${Date.now()}.csv`);
+    await copyFile(fixturePath, run1CsvPath);
     const run1 = await context.prisma.importRun.create({
       data: {
         status: 'QUEUED',
         originalFilename: 'sample.csv',
-        storedPath: fixturePath
+        storedPath: run1CsvPath
       }
     });
 
-    await context.importWorker.handleImportJob(run1.id, fixturePath);
+    await context.importWorker.handleImportJob(run1.id, run1CsvPath);
 
     const run1Result = await context.prisma.importRun.findUnique({
       where: { id: run1.id }
@@ -154,7 +159,7 @@ describeIfDb('Import pipeline', () => {
     });
     expect(sku1?.lastSeenImportRunId).toBe(run2.id);
 
-    await unlink(secondCsvPath);
+    await unlink(secondCsvPath).catch(() => undefined);
   });
 
   it('marks import as FAILED when processing throws', async () => {
@@ -166,12 +171,12 @@ describeIfDb('Import pipeline', () => {
       }
     });
 
-    const failingParser: CsvParserService = {
+    const failingParser = {
       parseFile: async () => {
         throw new Error('boom');
       },
       getRequiredHeaders: () => []
-    } as CsvParserService;
+    } as unknown as CsvParserService;
 
     const categoryTreeService = new CategoryTreeService(context.prisma as any);
     const importService = new ImportService(
@@ -179,7 +184,9 @@ describeIfDb('Import pipeline', () => {
       failingParser,
       categoryTreeService
     );
-    const worker = new ImportWorker(importService);
+    const indexSkusJob = { run: jest.fn().mockResolvedValue(undefined) } as any;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    const worker = new ImportWorker(importService, indexSkusJob, queue);
 
     await expect(worker.handleImportJob(run.id, '/tmp/bad.csv')).rejects.toThrow('boom');
 

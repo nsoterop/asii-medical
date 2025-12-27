@@ -5,7 +5,7 @@ test('admin imports list renders', async ({ page }) => {
     window.localStorage.setItem('adminSecret', 'test-secret');
   });
 
-  await page.route('**/admin/imports', async (route) => {
+  await page.route('**/api/admin/imports', async (route) => {
     if (route.request().method() === 'GET') {
       await route.fulfill({
         status: 200,

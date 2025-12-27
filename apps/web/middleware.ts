@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { getPublicEnv } from './src/lib/env';
 
-const PUBLIC_ROUTES = new Set(['/', '/about', '/terms']);
+const PUBLIC_ROUTES = new Set(['/', '/about', '/terms', '/search', '/cart']);
+const PUBLIC_PREFIXES = ['/product'];
 const AUTH_ROUTES = new Set(['/login', '/signup']);
 
 const applyAuthCookies = (from: NextResponse, to: NextResponse) => {
@@ -35,8 +36,11 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  const isPublicPath =
+    PUBLIC_ROUTES.has(pathname) || PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
   if (!user) {
-    if (!PUBLIC_ROUTES.has(pathname) && !AUTH_ROUTES.has(pathname)) {
+    if (!isPublicPath && !AUTH_ROUTES.has(pathname)) {
       const redirect = NextResponse.redirect(new URL('/', request.url));
       applyAuthCookies(response, redirect);
       return redirect;

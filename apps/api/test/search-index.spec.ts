@@ -31,6 +31,7 @@ describe('IndexSkusJob', () => {
     } as any;
 
     const index = {
+      updateSettings: jest.fn().mockResolvedValue(undefined),
       addDocuments: jest.fn().mockResolvedValue({ taskUid: 1 })
     };
     const searchService = new SearchService();

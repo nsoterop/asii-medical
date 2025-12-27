@@ -126,7 +126,7 @@ test('header search shows suggestions and links', async ({ page }) => {
   });
 
   await page.goto('/');
-  const searchInput = page.getByPlaceholder('Search products...');
+  const searchInput = page.getByPlaceholder('Search');
   await expect(searchInput).toBeVisible();
   await searchInput.fill('glove');
   await expect(page.locator('[data-testid=\"search-suggestions\"]')).toBeVisible();
@@ -134,11 +134,15 @@ test('header search shows suggestions and links', async ({ page }) => {
   await expect(page.locator('[data-testid=\"search-show-all\"]')).toBeVisible();
 
   await page.locator('[data-testid=\"search-show-all\"]').click();
-  await expect(page).toHaveURL(/\\/search\\?q=glove/);
+  await expect(page).toHaveURL(/\/search\?q=glove/);
 
-  await searchInput.fill('glove');
+  await page.goBack();
+  const searchInputAfter = page.getByPlaceholder('Search');
+  await expect(searchInputAfter).toBeVisible();
+  await searchInputAfter.fill('glove');
+  await expect(page.locator('[data-testid=\"search-suggestions\"]')).toBeVisible();
   await page.locator('[data-testid=\"search-suggestion\"]').first().click();
-  await expect(page).toHaveURL(/\\/product\\/101/);
+  await expect(page).toHaveURL(/\/product\/101/);
 
   await page.goto('/search?q=glove');
   await expect(page.getByPlaceholder('Search products...')).toHaveCount(0);

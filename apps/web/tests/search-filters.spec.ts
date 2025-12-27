@@ -61,11 +61,15 @@ test('manufacturer filter shows view more and modal selection', async ({ page })
   await expect(selectedRow).toBeVisible();
   await expect(selectedRow.locator('input[type="checkbox"]')).toBeChecked();
 
-  const secondRow = page
-    .locator('[data-testid="manufacturer-option"]')
-    .filter({ hasText: 'Maker 11' });
-  await secondRow.locator('input[type="checkbox"]').check();
+  await page.locator('[data-testid="manufacturer-view-more"]').click();
+  const modal2 = page.locator('[data-testid="manufacturer-modal"]');
+  await expect(modal2).toBeVisible();
+  await modal2.locator('[data-testid="manufacturer-search"]').fill('Maker 11');
+  await expect(modal2.getByText('Maker 11')).toBeVisible();
+  await modal2.getByText('Maker 11').click();
+  await modal2.getByLabel('Close').click();
+  await expect(modal2).toHaveCount(0);
 
-  await expect(page).toHaveURL(/manufacturer=Maker%2012/);
-  await expect(page).toHaveURL(/manufacturer=Maker%2011/);
+  await expect(page).toHaveURL(/manufacturer=Maker\+12|manufacturer=Maker%2012/);
+  await expect(page).toHaveURL(/manufacturer=Maker\+11|manufacturer=Maker%2011/);
 });

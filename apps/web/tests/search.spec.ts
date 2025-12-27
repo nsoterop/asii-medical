@@ -46,5 +46,5 @@ test('search page renders results', async ({ page }) => {
 
   await page.goto('/search?q=mask');
   await expect(page.getByText('Test Mask')).toBeVisible();
-  await expect(page.getByText('Acme')).toBeVisible();
+  await expect(page.getByText('Acme').first()).toBeVisible();
 });
