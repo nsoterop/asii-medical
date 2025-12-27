@@ -1,0 +1,123 @@
+.hero {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  margin-top: -32px;
+}
+
+.heroInner {
+  position: relative;
+  height: 520px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .heroInner {
+    height: 600px;
+  }
+}
+
+.imageLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.gradient {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.1) 0%,
+    rgba(15, 23, 42, 0.2) 50%,
+    rgba(15, 23, 42, 0.45) 100%
+  );
+}
+
+.contentWrap {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24px;
+}
+
+.content {
+  max-width: 768px;
+  text-align: center;
+  color: #fff;
+}
+
+.title {
+  margin: 0;
+  font-size: 48px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.subtitle {
+  margin: 20px 0 0;
+  font-size: 18px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.actions {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.primaryButton {
+  border-radius: 999px;
+  background: #fff;
+  color: #0f172a;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.secondaryButton {
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: 38px;
+  }
+
+  .subtitle {
+    font-size: 16px;
+  }
+}

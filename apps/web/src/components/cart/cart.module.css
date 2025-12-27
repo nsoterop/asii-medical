@@ -1,0 +1,157 @@
+.card {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 200px;
+  gap: 16px;
+  background: #fff;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.cardTitle {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.cardMeta {
+  color: #666;
+  font-size: 14px;
+  margin: 2px 0;
+}
+
+.availabilityBadge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: #e9f7ee;
+  color: #1b7f3a;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.availabilityBadgeWarn {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: #fff4e5;
+  color: #9a5b13;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.lineTotal {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+}
+
+.qtyLabel {
+  font-size: 13px;
+  color: #666;
+}
+
+.qtyInput {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid #d1d1d1;
+  text-align: right;
+  font-size: 13px;
+  flex: none;
+}
+
+.removeButton {
+  border: none;
+  background: transparent;
+  color: #c02626;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.summaryCard {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fff;
+}
+
+.summaryTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.summaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #444;
+  margin: 6px 0;
+}
+
+.summaryTotal {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.summaryButton {
+  width: 100%;
+  margin-top: 16px;
+  border-radius: 8px;
+  border: 1px solid #414F64;
+  background: #414F64;
+  color: #fff;
+  padding: 10px 14px;
+  height: 44px;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.summaryLink {
+  display: block;
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #1a5fd0;
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  .card {
+    grid-template-columns: 100px minmax(0, 1fr);
+  }
+
+  .cardActions {
+    grid-column: 1 / -1;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,155 @@
+.wrap {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #444;
+}
+
+.input {
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid #d6d6d6;
+  padding: 0 12px;
+  font-size: 14px;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+}
+
+.locationWrap {
+  position: relative;
+  width: 100%;
+}
+
+.locationInput {
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+}
+
+.locationList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 180px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+}
+
+.locationOption {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.locationOption:hover {
+  background: #f4f4f4;
+}
+
+.locationEmpty {
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #666;
+}
+
+.fieldError {
+  font-size: 12px;
+  color: #a61b1b;
+}
+
+.error {
+  border: 1px solid #f4c7c7;
+  background: #fdecec;
+  color: #a61b1b;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.success {
+  border: 1px solid #c9e6d1;
+  background: #edf7f1;
+  color: #1b7f3a;
+  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.submit {
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid #414F64;
+  background: #414F64;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.footer {
+  font-size: 13px;
+  color: #444;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}

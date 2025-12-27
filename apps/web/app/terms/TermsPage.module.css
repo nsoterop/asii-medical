@@ -1,0 +1,52 @@
+.container {
+  max-width: 896px;
+  margin: 0 auto;
+  padding: 32px 0 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.backLink {
+  color: #1a5fd0;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 15px;
+  color: #666;
+  margin: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.section p {
+  margin: 0;
+  color: #4b4b4b;
+  line-height: 1.8;
+  font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 40px 0 72px;
+  }
+}

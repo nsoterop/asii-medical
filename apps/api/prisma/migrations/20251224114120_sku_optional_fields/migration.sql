@@ -1,0 +1,11 @@
+-- AlterTable
+ALTER TABLE "Sku" ALTER COLUMN "manufacturerItemCode" DROP NOT NULL,
+ALTER COLUMN "itemDescription" DROP NOT NULL,
+ALTER COLUMN "itemImageUrl" DROP NOT NULL,
+ALTER COLUMN "ndcItemCode" DROP NOT NULL,
+ALTER COLUMN "pkg" DROP NOT NULL,
+ALTER COLUMN "unitPrice" TYPE DECIMAL(12, 2),
+ALTER COLUMN "unitPrice" DROP NOT NULL,
+ALTER COLUMN "priceDescription" DROP NOT NULL,
+ALTER COLUMN "availabilityRaw" DROP NOT NULL,
+ALTER COLUMN "packingListDescription" DROP NOT NULL;

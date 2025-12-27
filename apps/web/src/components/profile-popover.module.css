@@ -1,0 +1,88 @@
+.profileWrap {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.profileButton {
+  position: relative;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: #414F64;
+  text-decoration: none;
+  gap: 8px;
+}
+
+.profileButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.profileButton:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.profilePopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 260px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  padding: 16px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profileHeader {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.profileEmail {
+  font-size: 13px;
+  color: #444;
+  word-break: break-word;
+}
+
+.profileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profileName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+}
+
+.profileMeta {
+  font-size: 12px;
+  color: #666;
+}
+
+.logoutButton {
+  margin-top: 6px;
+  border: 1px solid #414F64;
+  background: #414F64;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: center;
+}

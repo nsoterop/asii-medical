@@ -1,0 +1,413 @@
+.wrapper {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 24px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1f1f1f;
+}
+
+.header {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.searchInputWrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.searchInput {
+  width: 100%;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  padding: 10px 40px 10px 12px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.clearSearch {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #414F64;
+  font-size: 20px;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.searchButton {
+  padding: 10px 16px;
+  background: #414F64;
+  color: #fff;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.sidebar {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  background: #fafafa;
+  height: fit-content;
+}
+
+.filterGroup {
+  margin-bottom: 16px;
+}
+
+.filterGroup h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+
+.filterList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.clearButton {
+  border: none;
+  background: transparent;
+  color: #1a5fd0;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.categoryOption {
+  border: none;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.categoryOptionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.categoryOptionTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.categoryOptionName {
+  font-size: 14px;
+  font-weight: 400;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.categoryOptionSubtext {
+  font-size: 12px;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.treeContainer {
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  max-height: 60vh;
+  overflow: auto;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.categoryTreeRow {
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.categoryTreeRow:last-child {
+  border-bottom: none;
+}
+
+.categoryTreeRowInner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.categoryTreeRowInner:hover {
+  background: rgba(245, 243, 255, 0.6);
+}
+
+.categoryTreeLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.treeCaretSlot {
+  width: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+}
+
+.treeChevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: transform 150ms ease;
+}
+
+.treeChevronExpanded {
+  transform: rotate(90deg);
+}
+
+.treeChevronPlaceholder {
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+}
+
+.categoryTreeSpacer {
+  flex: 1;
+}
+
+.categoryTreeRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.categoryTreeLabel {
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  color: #111;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.categoryTreeSelected {
+  font-weight: 600;
+  color: #1a5fd0;
+}
+
+.categoryHighlight {
+  background: #fff3c4;
+}
+
+.categoryTreeChildren {
+  margin-top: 0;
+}
+
+.categoryCheckbox {
+  display: inline-flex;
+  align-items: center;
+}
+
+
+.viewMoreButton {
+  margin-top: 10px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  background: #fff;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.cardTitle {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.cardMeta {
+  color: #666;
+  font-size: 14px;
+}
+
+
+.pagination {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.pageNumbers {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pageButton {
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.pageButtonActive {
+  border-color: #414F64;
+  color: #414F64;
+  background: #f1f4f8;
+  cursor: default;
+}
+
+.pageEllipsis {
+  color: #666;
+  padding: 0 4px;
+}
+
+.loading {
+  color: #666;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+  padding: 24px;
+}
+
+.modalCard {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  width: 100%;
+  max-width: 720px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalHeader h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.modalClose {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modalList {
+  max-height: 60vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modalOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.modalOptionRow {
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@media (max-width: 960px) {
+  .wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    grid-template-columns: 1fr;
+  }
+}

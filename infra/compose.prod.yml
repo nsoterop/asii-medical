@@ -1,0 +1,92 @@
+version: '3.9'
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.prod
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      S3_BUCKET: ${S3_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-}
+      SQUARE_ENV: ${SQUARE_ENV:-sandbox}
+      SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN:-}
+      SQUARE_LOCATION_ID: ${SQUARE_LOCATION_ID:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      MEILI_URL: ${MEILI_URL:-http://meilisearch:7700}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-devmasterkey}
+      IMPORT_WORKER_ENABLED: 'false'
+    depends_on:
+      - redis
+
+  worker:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.prod
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      S3_BUCKET: ${S3_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-}
+      SQUARE_ENV: ${SQUARE_ENV:-sandbox}
+      SQUARE_ACCESS_TOKEN: ${SQUARE_ACCESS_TOKEN:-}
+      SQUARE_LOCATION_ID: ${SQUARE_LOCATION_ID:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      MEILI_URL: ${MEILI_URL:-http://meilisearch:7700}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-devmasterkey}
+      IMPORT_WORKER_ENABLED: 'true'
+    command: node dist/worker.js
+    depends_on:
+      - redis
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env.prod
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/api}
+    depends_on:
+      - api
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.9
+    restart: unless-stopped
+    profiles: ["search"]
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-devmasterkey}
+    volumes:
+      - meili_data:/meili_data
+
+  caddy:
+    image: caddy:2.7-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+      - api
+
+volumes:
+  meili_data:
+  caddy_data:
+  caddy_config:

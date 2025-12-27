@@ -1,0 +1,76 @@
+.admin-shell {
+  max-width: 960px;
+  margin: 32px auto;
+  padding: 0 16px 40px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #1f1f1f;
+}
+
+.admin-shell h1 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.admin-card {
+  border: 1px solid #e3e3e3;
+  border-radius: 8px;
+  padding: 16px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.admin-table th,
+.admin-table td {
+  border-bottom: 1px solid #e6e6e6;
+  padding: 8px;
+  text-align: left;
+}
+
+.admin-table th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-button {
+  border: 1px solid #414F64;
+  background: #414F64;
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.admin-button.secondary {
+  background: #fff;
+  color: #414F64;
+}
+
+.admin-input {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.admin-muted {
+  color: #666;
+  font-size: 13px;
+}
+
+.admin-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}

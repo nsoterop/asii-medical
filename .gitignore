@@ -1,0 +1,7 @@
+node_modules/
+.turbo/
+.env
+.env.*
+dist/
+apps/api/uploads/
+.next
