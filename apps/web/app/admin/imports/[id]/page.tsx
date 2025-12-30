@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -8,7 +8,7 @@ import {
   getImportRun,
   markImportFailed,
   ImportErrorPage,
-  ImportRun
+  ImportRun,
 } from '../../../../lib/admin-api';
 
 const PAGE_SIZE = 25;
@@ -26,7 +26,7 @@ export default function ImportRunDetailPage() {
 
   const hasNext = useMemo(() => errors?.hasNext ?? false, [errors]);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
     if (!id) {
       return;
     }
@@ -35,7 +35,7 @@ export default function ImportRunDetailPage() {
       setLoading(true);
       const [runData, errorPage] = await Promise.all([
         getImportRun(id),
-        getImportErrors(id, page, PAGE_SIZE)
+        getImportErrors(id, page, PAGE_SIZE),
       ]);
       setRun(runData);
       setErrors(errorPage);
@@ -46,11 +46,11 @@ export default function ImportRunDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, page]);
 
   useEffect(() => {
     fetchDetail();
-  }, [id, page]);
+  }, [fetchDetail]);
 
   const onMarkFailed = async () => {
     if (!run) {
@@ -109,10 +109,12 @@ export default function ImportRunDetailPage() {
               <strong>Created:</strong> {new Date(run.createdAt).toLocaleString()}
             </p>
             <p>
-              <strong>Started:</strong> {run.startedAt ? new Date(run.startedAt).toLocaleString() : '—'}
+              <strong>Started:</strong>{' '}
+              {run.startedAt ? new Date(run.startedAt).toLocaleString() : '—'}
             </p>
             <p>
-              <strong>Finished:</strong> {run.finishedAt ? new Date(run.finishedAt).toLocaleString() : '—'}
+              <strong>Finished:</strong>{' '}
+              {run.finishedAt ? new Date(run.finishedAt).toLocaleString() : '—'}
             </p>
             <p>
               <strong>Total Rows:</strong> {run.totalRows}

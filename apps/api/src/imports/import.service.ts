@@ -6,7 +6,10 @@ import { CategoryTreeService } from '../catalog/category-tree.service';
 import { buildCategoryNodes } from './category-utils';
 
 export class RowValidationError extends Error {
-  constructor(message: string, public readonly field?: string) {
+  constructor(
+    message: string,
+    public readonly field?: string,
+  ) {
     super(message);
   }
 }
@@ -63,7 +66,7 @@ export class ImportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly csvParser: CsvParserService,
-    private readonly categoryTreeService: CategoryTreeService
+    private readonly categoryTreeService: CategoryTreeService,
   ) {}
 
   async listImportRuns(limit = 25) {
@@ -80,8 +83,8 @@ export class ImportService {
         inserted: true,
         updated: true,
         deactivated: true,
-        errorCount: true
-      }
+        errorCount: true,
+      },
     });
   }
 
@@ -96,9 +99,9 @@ export class ImportService {
         where: { importRunId },
         orderBy: { rowNumber: 'asc' },
         skip,
-        take: pageSize
+        take: pageSize,
       }),
-      this.prisma.importRowError.count({ where: { importRunId } })
+      this.prisma.importRowError.count({ where: { importRunId } }),
     ]);
 
     return {
@@ -106,7 +109,7 @@ export class ImportService {
       page,
       pageSize,
       total,
-      hasNext: skip + items.length < total
+      hasNext: skip + items.length < total,
     };
   }
 
@@ -115,8 +118,8 @@ export class ImportService {
       data: {
         status: ImportRunStatus.QUEUED,
         originalFilename,
-        storedPath
-      }
+        storedPath,
+      },
     });
   }
 
@@ -126,8 +129,8 @@ export class ImportService {
         id,
         status: ImportRunStatus.QUEUED,
         originalFilename,
-        storedPath
-      }
+        storedPath,
+      },
     });
   }
 
@@ -137,8 +140,8 @@ export class ImportService {
       data: {
         status: ImportRunStatus.RUNNING,
         startedAt: new Date(),
-        lastErrorText: null
-      }
+        lastErrorText: null,
+      },
     });
   }
 
@@ -150,7 +153,7 @@ export class ImportService {
       updated: number;
       deactivated: number;
       errorCount: number;
-    }
+    },
   ) {
     return this.prisma.importRun.update({
       where: { id: importRunId },
@@ -162,8 +165,8 @@ export class ImportService {
         updated: stats.updated,
         deactivated: stats.deactivated,
         errorCount: stats.errorCount,
-        lastErrorText: null
-      }
+        lastErrorText: null,
+      },
     });
   }
 
@@ -173,8 +176,8 @@ export class ImportService {
       data: {
         status: ImportRunStatus.FAILED,
         finishedAt: new Date(),
-        lastErrorText: errorText
-      }
+        lastErrorText: errorText,
+      },
     });
   }
 
@@ -183,20 +186,19 @@ export class ImportService {
     await this.prisma.importRun.updateMany({
       where: {
         id: importRunId,
-        status: { in: [ImportRunStatus.RUNNING, ImportRunStatus.QUEUED] }
+        status: { in: [ImportRunStatus.RUNNING, ImportRunStatus.QUEUED] },
       },
       data: {
         status: ImportRunStatus.FAILED,
         finishedAt: now,
-        lastErrorText: 'Manually marked failed'
-      }
+        lastErrorText: 'Manually marked failed',
+      },
     });
 
     return this.prisma.importRun.findUnique({ where: { id: importRunId } });
   }
 
   async processImport(importRunId: string, filePath: string, priceMarginPercent = 0) {
-
     let rows: Record<string, string>[];
     try {
       rows = await this.csvParser.parseFile(filePath);
@@ -212,7 +214,7 @@ export class ImportService {
     const concurrency = Number(process.env.IMPORT_CONCURRENCY || 4);
     const chunks = this.chunkRows(rows, chunkSize);
     const results = await this.runWithConcurrency(chunks, concurrency, (chunk) =>
-      this.processChunk(importRunId, chunk, priceMarginPercent)
+      this.processChunk(importRunId, chunk, priceMarginPercent),
     );
 
     let inserted = 0;
@@ -238,7 +240,7 @@ export class ImportService {
     if (categoryNodes.length > 0) {
       await this.prisma.category.createMany({
         data: categoryNodes,
-        skipDuplicates: true
+        skipDuplicates: true,
       });
     }
     this.categoryTreeService.invalidateCache();
@@ -246,17 +248,17 @@ export class ImportService {
     // TODO: Scope by supplier when supplierId is introduced.
     const removedSkus = await this.prisma.sku.deleteMany({
       where: {
-        lastSeenImportRunId: { not: importRunId }
-      }
+        lastSeenImportRunId: { not: importRunId },
+      },
     });
     await this.prisma.product.deleteMany({
-      where: { skus: { none: {} } }
+      where: { skus: { none: {} } },
     });
     await this.prisma.categoryPath.deleteMany({
-      where: { products: { none: {} } }
+      where: { products: { none: {} } },
     });
     await this.prisma.manufacturer.deleteMany({
-      where: { products: { none: {} } }
+      where: { products: { none: {} } },
     });
 
     return {
@@ -264,7 +266,7 @@ export class ImportService {
       inserted,
       updated,
       deactivated: removedSkus.count,
-      errorCount: errorRows.length
+      errorCount: errorRows.length,
     };
   }
 
@@ -279,7 +281,7 @@ export class ImportService {
   private async runWithConcurrency<T, R>(
     items: T[],
     limit: number,
-    worker: (item: T) => Promise<R>
+    worker: (item: T) => Promise<R>,
   ): Promise<R[]> {
     const results: R[] = [];
     let nextIndex = 0;
@@ -297,7 +299,7 @@ export class ImportService {
   private async processChunk(
     importRunId: string,
     chunk: RowChunk,
-    priceMarginPercent: number
+    priceMarginPercent: number,
   ): Promise<ChunkResult> {
     const parsedRows: ParsedRow[] = [];
     const errorRows: Prisma.ImportRowErrorCreateManyInput[] = [];
@@ -314,7 +316,7 @@ export class ImportService {
             importRunId,
             rowNumber,
             field: 'CategoryPathID',
-            message: 'Missing; set to Uncategorized'
+            message: 'Missing; set to Uncategorized',
           });
         }
         parsedRows.push({ ...parsedRow, rowNumber });
@@ -325,7 +327,7 @@ export class ImportService {
           importRunId,
           rowNumber,
           field,
-          message
+          message,
         });
       }
     });
@@ -357,7 +359,7 @@ export class ImportService {
       await this.withRetry(async () => {
         const existingSkus = await this.prisma.sku.findMany({
           where: { itemId: { in: skuIds } },
-          select: { itemId: true }
+          select: { itemId: true },
         });
         const existingSet = new Set(existingSkus.map((sku) => sku.itemId));
         updated = existingSet.size;
@@ -374,7 +376,7 @@ export class ImportService {
         errorRows.push({
           importRunId,
           rowNumber: row.rowNumber,
-          message
+          message,
         });
       });
       return { inserted: 0, updated: 0, errorRows, categoryPaths };
@@ -387,7 +389,7 @@ export class ImportService {
     const batchSize = 200;
     for (let index = 0; index < rows.length; index += batchSize) {
       await this.prisma.importRowError.createMany({
-        data: rows.slice(index, index + batchSize)
+        data: rows.slice(index, index + batchSize),
       });
     }
   }
@@ -396,7 +398,9 @@ export class ImportService {
     if (entries.length === 0) {
       return;
     }
-    const values = entries.map(([manufacturerId, name]) => Prisma.sql`(${manufacturerId}, ${name})`);
+    const values = entries.map(
+      ([manufacturerId, name]) => Prisma.sql`(${manufacturerId}, ${name})`,
+    );
     await this.prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Manufacturer" ("manufacturerId", "name")
       VALUES ${Prisma.join(values)}
@@ -408,8 +412,8 @@ export class ImportService {
     if (entries.length === 0) {
       return;
     }
-    const values = entries.map(([categoryPathId, categoryPathName]) =>
-      Prisma.sql`(${categoryPathId}, ${categoryPathName})`
+    const values = entries.map(
+      ([categoryPathId, categoryPathName]) => Prisma.sql`(${categoryPathId}, ${categoryPathName})`,
     );
     await this.prisma.$executeRaw(Prisma.sql`
       INSERT INTO "CategoryPath" ("categoryPathId", "categoryPathName")
@@ -422,8 +426,9 @@ export class ImportService {
     if (rows.length === 0) {
       return;
     }
-    const values = rows.map((row) =>
-      Prisma.sql`(${row.productId}, ${row.productName}, ${row.productDescription}, ${row.manufacturerId}, ${row.categoryPathId})`
+    const values = rows.map(
+      (row) =>
+        Prisma.sql`(${row.productId}, ${row.productName}, ${row.productDescription}, ${row.manufacturerId}, ${row.categoryPathId})`,
     );
     await this.prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Product" (
@@ -448,8 +453,9 @@ export class ImportService {
       return;
     }
     const now = new Date();
-    const values = rows.map((row) =>
-      Prisma.sql`(
+    const values = rows.map(
+      (row) =>
+        Prisma.sql`(
         ${row.itemId},
         ${row.productId},
         ${row.manufacturerItemCode},
@@ -476,7 +482,7 @@ export class ImportService {
         ${importRunId},
         ${now},
         ${now}
-      )`
+      )`,
     );
     await this.prisma.$executeRaw(Prisma.sql`
       INSERT INTO "Sku" (
@@ -541,7 +547,7 @@ export class ImportService {
   private async withRetry<T>(
     operation: () => Promise<T>,
     maxAttempts = 4,
-    baseDelayMs = 150
+    baseDelayMs = 150,
   ): Promise<T> {
     let attempt = 0;
     while (attempt < maxAttempts) {
@@ -597,7 +603,7 @@ export class ImportService {
     }
     const unitPrice = this.applyPriceMargin(
       this.parseDecimalOptional(row.UnitPrice, 'UnitPrice'),
-      priceMarginPercent
+      priceMarginPercent,
     );
     const availabilityRaw = this.toNullableString(row.Availability);
 
@@ -630,7 +636,7 @@ export class ImportService {
       pharmacyProductType: this.toNullableString(row.PharmacyProductType),
       nationalDrugCode: this.toNullableString(row.NationalDrugCode),
       brandId: this.toNullableString(row.BrandID),
-      brandName: this.toNullableString(row.BrandName)
+      brandName: this.toNullableString(row.BrandName),
     };
   }
 
@@ -641,9 +647,7 @@ export class ImportService {
     if (!priceMarginPercent) {
       return unitPrice;
     }
-    const factor = new Prisma.Decimal(1).plus(
-      new Prisma.Decimal(priceMarginPercent).div(100)
-    );
+    const factor = new Prisma.Decimal(1).plus(new Prisma.Decimal(priceMarginPercent).div(100));
     return unitPrice.mul(factor).toDecimalPlaces(2);
   }
 

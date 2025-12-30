@@ -10,5 +10,5 @@ export const importsQueueProvider: Provider = {
     const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
     return new Queue(IMPORTS_QUEUE_NAME, { connection });
-  }
+  },
 };

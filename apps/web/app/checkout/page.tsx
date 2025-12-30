@@ -12,7 +12,7 @@ import { createBrowserSupabaseClient } from '../../src/lib/supabase/browser';
 import {
   createCheckoutOrder,
   payCheckoutOrder,
-  type CheckoutCreateResponse
+  type CheckoutCreateResponse,
 } from '../../src/lib/checkout-api';
 
 type SquareCard = {
@@ -24,7 +24,10 @@ type SquareCard = {
 declare global {
   interface Window {
     Square?: {
-      payments: (appId: string, locationId: string) => {
+      payments: (
+        appId: string,
+        locationId: string,
+      ) => {
         card: () => Promise<SquareCard>;
       };
     };
@@ -105,7 +108,7 @@ const US_STATE_CODES = new Set([
   'WA',
   'WV',
   'WI',
-  'WY'
+  'WY',
 ]);
 
 const US_STATE_NAMES: Record<string, string> = {
@@ -158,7 +161,7 @@ const US_STATE_NAMES: Record<string, string> = {
   WASHINGTON: 'WA',
   WEST_VIRGINIA: 'WV',
   WISCONSIN: 'WI',
-  WYOMING: 'WY'
+  WYOMING: 'WY',
 };
 
 const extractUsStateFromAddress = (value: string) => {
@@ -196,7 +199,7 @@ export default function CheckoutPage() {
     lastName: '',
     company: '',
     email: '',
-    shippingAddress: ''
+    shippingAddress: '',
   });
   const [locationOptions, setLocationOptions] = useState<LocationOption[]>([]);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -224,7 +227,6 @@ export default function CheckoutPage() {
           setError('Your cart is empty.');
           return;
         }
-
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unable to start checkout.';
         if (active) {
@@ -273,7 +275,7 @@ export default function CheckoutPage() {
         lastName: prev.lastName || profile?.last_name || '',
         company: prev.company || profile?.company || '',
         email: prev.email || email || '',
-        shippingAddress: prev.shippingAddress || profile?.location || ''
+        shippingAddress: prev.shippingAddress || profile?.location || '',
       }));
     };
 
@@ -300,7 +302,7 @@ export default function CheckoutPage() {
       try {
         setQuoteLoading(true);
         const checkoutResponse = await createCheckoutOrder({
-          shippingAddress: address
+          shippingAddress: address,
         });
         if (!active) return;
         setCheckout(checkoutResponse);
@@ -336,7 +338,7 @@ export default function CheckoutPage() {
       setLocationLoading(true);
       try {
         const response = await fetch(`/api/locations?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal
+          signal: controller.signal,
         });
         if (!response.ok) {
           throw new Error('Location lookup failed');
@@ -345,11 +347,13 @@ export default function CheckoutPage() {
         if (!active) return;
         setLocationOptions(data);
       } catch {
-        if (!active) return;
-        setLocationOptions([]);
+        if (active) {
+          setLocationOptions([]);
+        }
       } finally {
-        if (!active) return;
-        setLocationLoading(false);
+        if (active) {
+          setLocationLoading(false);
+        }
       }
     };
     run();
@@ -429,7 +433,7 @@ export default function CheckoutPage() {
         cartId: checkout.cartId,
         sourceId: result.token,
         buyerEmail: details.email.trim() || undefined,
-        shippingAddress: address
+        shippingAddress: address,
       });
 
       clearCartItems();
@@ -444,7 +448,7 @@ export default function CheckoutPage() {
   };
 
   const showSummary = cart && cart.items.length > 0;
-  const subtotal = checkout ? checkout.subtotalCents / 100 : cart?.totals.subtotal ?? 0;
+  const subtotal = checkout ? checkout.subtotalCents / 100 : (cart?.totals.subtotal ?? 0);
   const taxAmount = checkout ? checkout.taxCents / 100 : null;
   const totalAmount = checkout ? checkout.amountCents / 100 : subtotal;
   const hasAddress = details.shippingAddress.trim().length > 0;
@@ -452,7 +456,11 @@ export default function CheckoutPage() {
 
   return (
     <div className={styles.page}>
-      <Script src={squareScriptUrl} strategy="afterInteractive" onLoad={() => setSquareReady(true)} />
+      <Script
+        src={squareScriptUrl}
+        strategy="afterInteractive"
+        onLoad={() => setSquareReady(true)}
+      />
       <div className={styles.titleRow}>
         <h1 className={styles.title}>Checkout</h1>
       </div>
@@ -595,11 +603,10 @@ export default function CheckoutPage() {
                   {cart?.items.map((item) => (
                     <div key={item.itemId} className={styles.summaryRow}>
                       <span>
-                        {item.itemDescription || item.productName || `Item ${item.itemId}`} × {item.quantity}
+                        {item.itemDescription || item.productName || `Item ${item.itemId}`} ×{' '}
+                        {item.quantity}
                       </span>
-                      <span>
-                        {formatCurrency((item.unitPrice ?? 0) * item.quantity)}
-                      </span>
+                      <span>{formatCurrency((item.unitPrice ?? 0) * item.quantity)}</span>
                     </div>
                   ))}
                 </div>

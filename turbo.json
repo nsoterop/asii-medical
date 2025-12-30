@@ -7,17 +7,32 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "outputs": [".next/**", "dist/**", "coverage/**"]
     },
     "lint": {
       "outputs": []
     },
-    "test": {
-      "outputs": ["coverage/**"]
+    "format": {
+      "outputs": []
+    },
+    "format:check": {
+      "outputs": []
+    },
+    "typecheck": {
+      "outputs": []
+    },
+    "test:unit": {
+      "outputs": []
+    },
+    "test:e2e": {
+      "outputs": []
+    },
+    "env:check": {
+      "outputs": []
+    },
+    "clean": {
+      "cache": false,
+      "outputs": []
     }
   }
 }

@@ -24,8 +24,8 @@ import { AdminProductsModule } from './products/admin-products.module';
     CheckoutModule,
     NotificationsModule,
     OrdersModule,
-    AdminProductsModule
+    AdminProductsModule,
   ],
-  controllers: [HealthController]
+  controllers: [HealthController],
 })
 export class AppModule {}

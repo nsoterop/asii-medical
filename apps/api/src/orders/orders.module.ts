@@ -10,6 +10,6 @@ import { OrdersService } from './orders.service';
 @Module({
   imports: [AuthModule, PrismaModule, NotificationsModule, SquareModule],
   controllers: [OrdersController, AdminOrdersController],
-  providers: [OrdersService]
+  providers: [OrdersService],
 })
 export class OrdersModule {}

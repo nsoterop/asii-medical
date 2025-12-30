@@ -8,7 +8,7 @@ const mockSearchResponse = {
   total: 1,
   page: 1,
   pageSize: 20,
-  facets: { manufacturerName: { Acme: 1 } }
+  facets: { manufacturerName: { Acme: 1 } },
 };
 
 describe('CatalogController search', () => {
@@ -16,7 +16,7 @@ describe('CatalogController search', () => {
     const filters = parseFilters({
       filters: JSON.stringify({ manufacturerName: ['Acme'] }),
       availabilityRaw: 'In Stock',
-      minPrice: '10'
+      minPrice: '10',
     });
 
     expect(filters).toEqual({
@@ -24,16 +24,16 @@ describe('CatalogController search', () => {
       categoryPathName: undefined,
       availabilityRaw: ['In Stock'],
       minPrice: 10,
-      maxPrice: undefined
+      maxPrice: undefined,
     });
   });
 
   it('returns response shape for search', async () => {
     const catalogService = {
-      searchSkus: jest.fn().mockResolvedValue(mockSearchResponse)
+      searchSkus: jest.fn().mockResolvedValue(mockSearchResponse),
     } as unknown as CatalogService;
     const categoryTreeService = {
-      getTree: jest.fn()
+      getTree: jest.fn(),
     } as unknown as CategoryTreeService;
 
     const controller = new CatalogController(catalogService, categoryTreeService);
@@ -51,31 +51,32 @@ describe('SearchService search', () => {
       search: jest.fn().mockResolvedValue({
         hits: [],
         estimatedTotalHits: 0,
-        facetDistribution: { manufacturerName: {} }
-      })
+        facetDistribution: { manufacturerName: {} },
+      }),
     };
 
     const client = {
       createIndex: jest.fn().mockResolvedValue(undefined),
-      index: jest.fn().mockReturnValue(index)
+      index: jest.fn().mockReturnValue(index),
     };
 
     const service = new SearchService();
-    (service as any).client = client;
+    (service as unknown as { client: typeof client }).client = client;
 
     const result = await service.searchSkus('mask', 1, 25, {
       manufacturerName: ['Acme'],
       categoryPathName: ['Consumables'],
       availabilityRaw: ['In Stock'],
       minPrice: 10,
-      maxPrice: 50
+      maxPrice: 50,
     });
 
     expect(index.search).toHaveBeenCalledWith('mask', {
       limit: 25,
       offset: 0,
-      filter: 'manufacturerName IN ["Acme"] AND categoryPathName IN ["Consumables"] AND availabilityRaw IN ["In Stock"] AND unitPrice >= 10 AND unitPrice <= 50',
-      facets: ['manufacturerName', 'categoryPathName', 'availabilityRaw', 'pkg', 'isActive']
+      filter:
+        'manufacturerName IN ["Acme"] AND categoryPathName IN ["Consumables"] AND availabilityRaw IN ["In Stock"] AND unitPrice >= 10 AND unitPrice <= 50',
+      facets: ['manufacturerName', 'categoryPathName', 'availabilityRaw', 'pkg', 'isActive'],
     });
 
     expect(result).toEqual({
@@ -83,7 +84,7 @@ describe('SearchService search', () => {
       total: 0,
       page: 1,
       pageSize: 25,
-      facets: { manufacturerName: {} }
+      facets: { manufacturerName: {} },
     });
   });
 });

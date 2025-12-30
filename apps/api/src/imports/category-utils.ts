@@ -32,7 +32,7 @@ export const buildCategoryNodes = (paths: string[]) => {
         name: segment,
         path: nodePath,
         parentPath: index === 0 ? null : segments.slice(0, index).join(DELIMITER),
-        depth: index + 1
+        depth: index + 1,
       });
     });
   });

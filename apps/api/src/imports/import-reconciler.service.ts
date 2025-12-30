@@ -17,13 +17,13 @@ export class ImportReconcilerService implements OnModuleInit {
     return this.prisma.importRun.updateMany({
       where: {
         status: ImportRunStatus.RUNNING,
-        startedAt: { lt: cutoff }
+        startedAt: { lt: cutoff },
       },
       data: {
         status: ImportRunStatus.FAILED,
         finishedAt: new Date(),
-        lastErrorText: 'Marked failed by reconciler (stuck)'
-      }
+        lastErrorText: 'Marked failed by reconciler (stuck)',
+      },
     });
   }
 }

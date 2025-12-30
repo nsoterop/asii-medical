@@ -13,7 +13,7 @@ export class AdminUsersController {
   async activate(@Param('id') id: string) {
     return this.prisma.user.update({
       where: { id },
-      data: { status: UserStatus.ACTIVE }
+      data: { status: UserStatus.ACTIVE },
     });
   }
 }

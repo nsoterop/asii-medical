@@ -12,7 +12,7 @@ describe('CsvParserService', () => {
     await writeFile(tempPath, `${headers.join(',')}\n1001\n`);
 
     await expect(parser.parseFile(tempPath)).rejects.toMatchObject({
-      missingHeaders: expect.arrayContaining(['NDCItemCode'])
+      missingHeaders: expect.arrayContaining(['NDCItemCode']),
     });
 
     await unlink(tempPath);

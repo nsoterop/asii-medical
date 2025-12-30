@@ -3,8 +3,8 @@ import { verifySupabaseJwt } from '../src/auth/supabase-jwt';
 jest.mock('jose', () => ({
   createRemoteJWKSet: jest.fn(() => 'jwks'),
   jwtVerify: jest.fn().mockResolvedValue({
-    payload: { sub: 'supabase_123', email: 'user@example.com' }
-  })
+    payload: { sub: 'supabase_123', email: 'user@example.com' },
+  }),
 }));
 
 describe('verifySupabaseJwt', () => {

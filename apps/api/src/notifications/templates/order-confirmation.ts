@@ -27,7 +27,7 @@ export const buildOrderConfirmation = (data: OrderConfirmationData) => {
         <td style="padding: 6px 0; text-align: center;">${item.qty}</td>
         <td style="padding: 6px 0; text-align: right;">${formatMoney(item.unitPrice, data.currency)}</td>
       </tr>
-    `
+    `,
     )
     .join('');
 

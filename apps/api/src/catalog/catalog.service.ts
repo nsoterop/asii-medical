@@ -7,7 +7,7 @@ import { SearchFilters } from './catalog.types';
 export class CatalogService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly searchService: SearchService
+    private readonly searchService: SearchService,
   ) {}
 
   async searchSkus(query: string, page: number, pageSize: number, filters: SearchFilters) {
@@ -21,10 +21,10 @@ export class CatalogService {
         product: {
           include: {
             manufacturer: true,
-            primaryCategoryPath: true
-          }
-        }
-      }
+            primaryCategoryPath: true,
+          },
+        },
+      },
     });
 
     if (!sku) {
@@ -36,8 +36,8 @@ export class CatalogService {
       product: {
         ...sku.product,
         manufacturerName: sku.product.manufacturer?.name ?? null,
-        categoryPathName: sku.product.primaryCategoryPath?.categoryPathName ?? null
-      }
+        categoryPathName: sku.product.primaryCategoryPath?.categoryPathName ?? null,
+      },
     };
   }
 
@@ -48,9 +48,9 @@ export class CatalogService {
         manufacturer: true,
         primaryCategoryPath: true,
         skus: {
-          where: { isActive: true }
-        }
-      }
+          where: { isActive: true },
+        },
+      },
     });
 
     if (!product) {
@@ -60,7 +60,7 @@ export class CatalogService {
     return {
       ...product,
       manufacturerName: product.manufacturer?.name ?? null,
-      categoryPathName: product.primaryCategoryPath?.categoryPathName ?? null
+      categoryPathName: product.primaryCategoryPath?.categoryPathName ?? null,
     };
   }
 }

@@ -2,6 +2,12 @@ node_modules/
 .turbo/
 .env
 .env.*
+apps/api/.env*
+apps/web/.env*
 dist/
 apps/api/uploads/
 .next
+infra/data/
+!*.env.example
+!apps/api/.env.example
+!apps/web/.env.example

@@ -21,7 +21,11 @@ const formatProfileError = (message?: string | null) => {
   if (!message) {
     return 'Unable to save profile details. Please try again.';
   }
-  if (message.includes('schema cache') || message.includes('relation') || message.includes('profiles')) {
+  if (
+    message.includes('schema cache') ||
+    message.includes('relation') ||
+    message.includes('profiles')
+  ) {
     return 'Profile storage is not configured. Please run the profiles.sql script in Supabase and reload the schema cache.';
   }
   return message;
@@ -77,7 +81,6 @@ export default function AccountPage() {
     lastName: false,
     company: false,
     location: false,
-    email: false
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -92,9 +95,9 @@ export default function AccountPage() {
         lastName,
         company,
         location,
-        locationSelected
+        locationSelected,
       }),
-    [firstName, lastName, company, location, locationSelected]
+    [firstName, lastName, company, location, locationSelected],
   );
 
   const shouldShowError = (field: keyof FieldErrors) =>
@@ -153,7 +156,7 @@ export default function AccountPage() {
       setLocationLoading(true);
       try {
         const response = await fetch(`/api/locations?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal
+          signal: controller.signal,
         });
         if (!response.ok) {
           throw new Error('Location lookup failed');
@@ -162,11 +165,13 @@ export default function AccountPage() {
         if (!active) return;
         setLocationOptions(data);
       } catch {
-        if (!active) return;
-        setLocationOptions([]);
+        if (active) {
+          setLocationOptions([]);
+        }
       } finally {
-        if (!active) return;
-        setLocationLoading(false);
+        if (active) {
+          setLocationLoading(false);
+        }
       }
     };
     run();
@@ -207,8 +212,8 @@ export default function AccountPage() {
         first_name: trimmed.firstName,
         last_name: trimmed.lastName,
         company: trimmed.company,
-        location: trimmed.location
-      }
+        location: trimmed.location,
+      },
     };
 
     const { error: updateError } = await supabase.auth.updateUser(updatePayload);
@@ -226,8 +231,8 @@ export default function AccountPage() {
         firstName: trimmed.firstName,
         lastName: trimmed.lastName,
         company: trimmed.company,
-        location: trimmed.location
-      })
+        location: trimmed.location,
+      }),
     });
 
     if (!profileResponse.ok) {
@@ -360,9 +365,6 @@ export default function AccountPage() {
               disabled
               className={styles.input}
             />
-            {shouldShowError('email') ? (
-              <span className={styles.fieldError}>{fieldErrors.email}</span>
-            ) : null}
           </label>
           {error ? <div className={styles.error}>{error}</div> : null}
           {success ? <div className={styles.success}>{success}</div> : null}

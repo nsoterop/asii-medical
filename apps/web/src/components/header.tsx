@@ -61,13 +61,15 @@ export default function Header() {
         setHighlightedIndex(-1);
         setIsOpen(true);
       } catch {
-        if (!active) return;
-        setResults([]);
-        setHighlightedIndex(-1);
-        setIsOpen(true);
+        if (active) {
+          setResults([]);
+          setHighlightedIndex(-1);
+          setIsOpen(true);
+        }
       } finally {
-        if (!active) return;
-        setIsLoading(false);
+        if (active) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -131,11 +133,7 @@ export default function Header() {
                   onSearchAll();
                 }}
               >
-                <button
-                  type="submit"
-                  className={styles.searchIconButton}
-                  aria-label="Search"
-                >
+                <button type="submit" className={styles.searchIconButton} aria-label="Search">
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path
                       d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm7.7 12.3 3.5 3.5a1 1 0 0 1-1.4 1.4l-3.5-3.5a1 1 0 0 1 1.4-1.4Z"
@@ -189,9 +187,7 @@ export default function Header() {
 
                 {showDropdown ? (
                   <div className={styles.dropdown} data-testid="search-suggestions">
-                    {isLoading ? (
-                      <div className={styles.dropdownMessage}>Searching...</div>
-                    ) : null}
+                    {isLoading ? <div className={styles.dropdownMessage}>Searching...</div> : null}
                     {!isLoading &&
                       results.map((item, index) => (
                         <button

@@ -7,6 +7,6 @@ import { SquareWebhookController } from './square.webhook.controller';
   imports: [PrismaModule],
   providers: [SquareService],
   controllers: [SquareWebhookController],
-  exports: [SquareService]
+  exports: [SquareService],
 })
 export class SquareModule {}

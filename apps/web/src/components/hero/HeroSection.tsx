@@ -22,16 +22,13 @@ export default function HeroSection({ isLoggedIn = false }: HeroSectionProps) {
           />
         </div>
         <div className={styles.overlay} aria-hidden="true" />
-        <div
-          className={styles.gradient}
-          aria-hidden="true"
-        />
+        <div className={styles.gradient} aria-hidden="true" />
         <div className={styles.contentWrap}>
           <div className={styles.content}>
             <h1 className={styles.title}>ASii Medical</h1>
             <p className={styles.subtitle}>
-              Founded in 2019, industry veterans providing over 200,000 medical
-              supplies &amp; equipment with fast, reliable fulfillment.
+              Founded in 2019, industry veterans providing over 200,000 medical supplies &amp;
+              equipment with fast, reliable fulfillment.
             </p>
             <div className={styles.actions}>
               {isLoggedIn ? (

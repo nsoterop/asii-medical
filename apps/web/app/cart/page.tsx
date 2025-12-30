@@ -11,10 +11,15 @@ import {
   getCartTotals,
   readCartItems,
   removeCartItem,
-  updateCartItemQuantity
+  updateCartItemQuantity,
 } from '../../src/lib/cart';
 import { createBrowserSupabaseClient } from '../../src/lib/supabase/browser';
-import { fetchCart, mergeGuestCart, removeCartItemAuthed, updateCartItemQtyAuthed } from '../../src/lib/cart-api';
+import {
+  fetchCart,
+  mergeGuestCart,
+  removeCartItemAuthed,
+  updateCartItemQtyAuthed,
+} from '../../src/lib/cart-api';
 import styles from './CartPage.module.css';
 
 export default function CartPage() {

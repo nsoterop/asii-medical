@@ -1,12 +1,12 @@
 export const formatMoney = (amount: number | string | null | undefined, currency: string) => {
-  const numeric = typeof amount === 'string' ? Number(amount) : amount ?? 0;
+  const numeric = typeof amount === 'string' ? Number(amount) : (amount ?? 0);
   if (!Number.isFinite(numeric)) {
     return String(amount ?? '');
   }
   try {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency
+      currency,
     }).format(numeric);
   } catch {
     return `$${numeric.toFixed(2)}`;
@@ -24,6 +24,6 @@ export const formatDate = (value: Date | string | null | undefined) => {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 };

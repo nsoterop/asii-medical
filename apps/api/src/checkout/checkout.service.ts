@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CartStatus, OrderStatus, Prisma, ShipmentStatus } from '@prisma/client';
 import type { Currency } from 'square';
 import { PrismaService } from '../prisma/prisma.service';
@@ -15,7 +10,7 @@ import {
   calculateCartTotals,
   decimalToCents,
   extractUsStateFromAddress,
-  parseUsShippingAddress
+  parseUsShippingAddress,
 } from './checkout.utils';
 import { TaxService, type TaxQuote } from '../tax/tax.service';
 
@@ -42,16 +37,16 @@ export class CheckoutService {
     private readonly prisma: PrismaService,
     private readonly squareService: SquareService,
     private readonly emailService: EmailService,
-    private readonly taxService: TaxService
+    private readonly taxService: TaxService,
   ) {}
 
   async createCheckoutOrder(
     supabaseUserId: string,
-    shippingAddress?: string | null
+    shippingAddress?: string | null,
   ): Promise<CheckoutCreateResponse> {
     const cart = await this.prisma.cart.findFirst({
       where: { userId: supabaseUserId, status: CartStatus.ACTIVE },
-      include: { items: true }
+      include: { items: true },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -63,8 +58,8 @@ export class CheckoutService {
     const { subtotal } = calculateCartTotals(
       cart.items.map((item) => ({
         qty: item.qty,
-        unitPrice: item.unitPrice
-      }))
+        unitPrice: item.unitPrice,
+      })),
     );
 
     const currency = this.resolveCurrency(cart.items);
@@ -72,7 +67,7 @@ export class CheckoutService {
     try {
       taxQuote = await this.taxService.calculateSalesTax({
         toAddress: parsedAddress,
-        lineItems: this.buildTaxLineItems(cart.items)
+        lineItems: this.buildTaxLineItems(cart.items),
       });
     } catch (error) {
       this.logger.warn(`Tax calculation failed: ${(error as Error).message}`);
@@ -90,7 +85,7 @@ export class CheckoutService {
       subtotalCents,
       taxCents,
       amountCents,
-      currency
+      currency,
     };
   }
 
@@ -103,7 +98,7 @@ export class CheckoutService {
   }): Promise<CheckoutPayResponse> {
     const cart = await this.prisma.cart.findFirst({
       where: { id: params.cartId, userId: params.supabaseUserId },
-      include: { items: true }
+      include: { items: true },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -112,14 +107,18 @@ export class CheckoutService {
 
     const existing = await this.prisma.order.findFirst({
       where: { cartId: cart.id, userId: params.supabaseUserId },
-      include: { items: true, shipments: true }
+      include: { items: true, shipments: true },
     });
 
-    if (existing && existing.status !== OrderStatus.FAILED && existing.status !== OrderStatus.CANCELED) {
+    if (
+      existing &&
+      existing.status !== OrderStatus.FAILED &&
+      existing.status !== OrderStatus.CANCELED
+    ) {
       if (cart.status !== CartStatus.SUBMITTED) {
         await this.prisma.cart.update({
           where: { id: cart.id },
-          data: { status: CartStatus.SUBMITTED }
+          data: { status: CartStatus.SUBMITTED },
         });
       }
       if (existing.items.length === 0) {
@@ -127,14 +126,14 @@ export class CheckoutService {
       }
       if (existing.shipments.length === 0) {
         await this.prisma.shipment.create({
-          data: { orderId: existing.id, status: ShipmentStatus.PENDING }
+          data: { orderId: existing.id, status: ShipmentStatus.PENDING },
         });
       }
       return {
         status: 'PAID',
         orderId: existing.id,
         squarePaymentId: existing.squarePaymentId ?? '',
-        receiptUrl: null
+        receiptUrl: null,
       };
     }
 
@@ -151,8 +150,8 @@ export class CheckoutService {
     const { subtotal } = calculateCartTotals(
       cart.items.map((item) => ({
         qty: item.qty,
-        unitPrice: item.unitPrice
-      }))
+        unitPrice: item.unitPrice,
+      })),
     );
 
     const currency = this.resolveCurrency(cart.items);
@@ -160,7 +159,7 @@ export class CheckoutService {
     try {
       taxQuote = await this.taxService.calculateSalesTax({
         toAddress: parsedAddress,
-        lineItems: this.buildTaxLineItems(cart.items)
+        lineItems: this.buildTaxLineItems(cart.items),
       });
     } catch (error) {
       this.logger.warn(`Tax calculation failed: ${(error as Error).message}`);
@@ -184,15 +183,14 @@ export class CheckoutService {
     const lineItems = cart.items.map((item) => {
       const meta = (item.meta ?? {}) as Record<string, unknown>;
       const productName =
-        typeof meta.productName === 'string' && meta.productName.trim()
-          ? meta.productName
-          : null;
+        typeof meta.productName === 'string' && meta.productName.trim() ? meta.productName : null;
       const itemDescription =
         typeof meta.itemDescription === 'string' && meta.itemDescription.trim()
           ? meta.itemDescription
           : null;
 
-      const name = productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
+      const name =
+        productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
 
       const note = itemDescription && itemDescription !== name ? itemDescription : null;
 
@@ -201,14 +199,14 @@ export class CheckoutService {
         note,
         quantity: item.qty,
         amountCents: decimalToCents(item.unitPrice),
-        currency
+        currency,
       };
     });
 
     const lineItemSignature = cart.items
       .map(
         (item) =>
-          `${item.productId}:${item.variantId ?? ''}:${item.qty}:${item.unitPrice.toString()}`
+          `${item.productId}:${item.variantId ?? ''}:${item.qty}:${item.unitPrice.toString()}`,
       )
       .sort()
       .join('|');
@@ -222,10 +220,10 @@ export class CheckoutService {
           ? [
               {
                 name: 'Sales Tax',
-                percentage: taxPercentage
-              }
+                percentage: taxPercentage,
+              },
             ]
-          : undefined
+          : undefined,
       });
 
       const squareTotalCents = squareOrder.totalMoney?.amount
@@ -238,31 +236,35 @@ export class CheckoutService {
         amountCents: squareTotalCents,
         currency,
         idempotencyKey: buildPaymentIdempotencyKey(cart.id, params.sourceId),
-        buyerEmail: params.buyerEmail
+        buyerEmail: params.buyerEmail,
       });
 
       const existingOrder = await this.prisma.order.findFirst({
         where: {
           userId: params.supabaseUserId,
-          OR: [{ squarePaymentId: payment.id }, { squareOrderId: squareOrder.id }]
+          OR: [{ squarePaymentId: payment.id }, { squareOrderId: squareOrder.id }],
         },
-        include: { items: true, shipments: true }
+        include: { items: true, shipments: true },
       });
 
       if (existingOrder) {
         if (existingOrder.items.length === 0) {
-          await this.snapshotOrderItems(existingOrder.id, existingOrder.cartId, existingOrder.currency);
+          await this.snapshotOrderItems(
+            existingOrder.id,
+            existingOrder.cartId,
+            existingOrder.currency,
+          );
         }
         if (existingOrder.shipments.length === 0) {
           await this.prisma.shipment.create({
-            data: { orderId: existingOrder.id, status: ShipmentStatus.PENDING }
+            data: { orderId: existingOrder.id, status: ShipmentStatus.PENDING },
           });
         }
         return {
           status: 'PAID',
           orderId: existingOrder.id,
           squarePaymentId: existingOrder.squarePaymentId ?? payment.id,
-          receiptUrl: payment.receiptUrl ?? null
+          receiptUrl: payment.receiptUrl ?? null,
         };
       }
 
@@ -275,8 +277,8 @@ export class CheckoutService {
           status: OrderStatus.PAID,
           currency,
           subtotal: new Prisma.Decimal(subtotal),
-          total: new Prisma.Decimal(squareTotalCents).div(100)
-        }
+          total: new Prisma.Decimal(squareTotalCents).div(100),
+        },
       });
 
       await this.prisma.$transaction([
@@ -284,18 +286,18 @@ export class CheckoutService {
           data: {
             orderId: createdOrder.id,
             from: null,
-            to: OrderStatus.PAID
-          }
+            to: OrderStatus.PAID,
+          },
         }),
         this.prisma.cart.update({
           where: { id: cart.id },
-          data: { status: CartStatus.SUBMITTED }
-        })
+          data: { status: CartStatus.SUBMITTED },
+        }),
       ]);
 
       await this.snapshotOrderItems(createdOrder.id, cart.id, currency);
       await this.prisma.shipment.create({
-        data: { orderId: createdOrder.id, status: ShipmentStatus.PENDING }
+        data: { orderId: createdOrder.id, status: ShipmentStatus.PENDING },
       });
 
       try {
@@ -304,7 +306,7 @@ export class CheckoutService {
           createdAt: createdOrder.createdAt,
           currency: createdOrder.currency,
           total: createdOrder.total.toString(),
-          items: await this.getOrderItemsForEmail(createdOrder.id)
+          items: await this.getOrderItemsForEmail(createdOrder.id),
         });
       } catch (error) {
         this.logger.warn(`Order confirmation email failed: ${(error as Error).message}`);
@@ -314,7 +316,7 @@ export class CheckoutService {
         status: 'PAID',
         orderId: createdOrder.id,
         squarePaymentId: payment.id,
-        receiptUrl: payment.receiptUrl ?? null
+        receiptUrl: payment.receiptUrl ?? null,
       };
     } catch (error) {
       this.logger.error('Square payment failed', error as Error);
@@ -324,7 +326,7 @@ export class CheckoutService {
 
   async getOrderStatus(supabaseUserId: string, orderId: string) {
     const order = await this.prisma.order.findFirst({
-      where: { id: orderId, userId: supabaseUserId }
+      where: { id: orderId, userId: supabaseUserId },
     });
 
     if (!order) {
@@ -333,7 +335,7 @@ export class CheckoutService {
 
     return {
       orderId: order.id,
-      status: order.status
+      status: order.status,
     };
   }
 
@@ -341,9 +343,7 @@ export class CheckoutService {
     const fallback = this.squareService.getDefaultCurrency();
     const currency = (items.find((item) => item.currency)?.currency ?? fallback) as Currency;
 
-    const mismatched = items.find(
-      (item) => item.currency && item.currency !== currency
-    );
+    const mismatched = items.find((item) => item.currency && item.currency !== currency);
 
     if (mismatched) {
       throw new BadRequestException('Cart contains mixed currencies.');
@@ -368,7 +368,7 @@ export class CheckoutService {
         city: raw,
         state,
         zip: '',
-        country: 'US'
+        country: 'US',
       };
     }
 
@@ -380,11 +380,19 @@ export class CheckoutService {
     }
   }
 
-  private buildTaxLineItems(items: Array<{ id: string; variantId: string | null; productId: string; qty: number; unitPrice: Prisma.Decimal }>) {
+  private buildTaxLineItems(
+    items: Array<{
+      id: string;
+      variantId: string | null;
+      productId: string;
+      qty: number;
+      unitPrice: Prisma.Decimal;
+    }>,
+  ) {
     return items.map((item) => ({
       id: item.variantId ?? item.productId ?? item.id,
       quantity: item.qty,
-      unitPrice: item.unitPrice
+      unitPrice: item.unitPrice,
     }));
   }
 
@@ -396,7 +404,7 @@ export class CheckoutService {
 
     const cart = await this.prisma.cart.findUnique({
       where: { id: cartId },
-      include: { items: true }
+      include: { items: true },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -413,7 +421,8 @@ export class CheckoutService {
         typeof rawMeta.itemDescription === 'string' && rawMeta.itemDescription.trim()
           ? rawMeta.itemDescription
           : null;
-      const name = productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
+      const name =
+        productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
       const description = itemDescription && itemDescription !== name ? itemDescription : null;
       const meta = {
         ...rawMeta,
@@ -424,7 +433,7 @@ export class CheckoutService {
         manufacturerItemCode:
           typeof rawMeta.manufacturerItemCode === 'string'
             ? rawMeta.manufacturerItemCode
-            : undefined
+            : undefined,
       };
 
       return {
@@ -436,7 +445,7 @@ export class CheckoutService {
         qty: item.qty,
         unitPrice: item.unitPrice,
         currency: item.currency ?? currency,
-        meta
+        meta,
       };
     });
 
@@ -448,7 +457,7 @@ export class CheckoutService {
     return items.map((item) => ({
       name: item.name,
       qty: item.qty,
-      unitPrice: item.unitPrice.toString()
+      unitPrice: item.unitPrice.toString(),
     }));
   }
 }

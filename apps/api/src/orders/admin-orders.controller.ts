@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  UseGuards
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { OrdersService } from './orders.service';
@@ -20,7 +12,7 @@ export class AdminOrdersController {
   async list(
     @Query('status') status?: string,
     @Query('q') query?: string,
-    @Query('date') date?: string
+    @Query('date') date?: string,
   ) {
     return this.ordersService.listAdminOrders(status, { query, date });
   }
@@ -34,7 +26,7 @@ export class AdminOrdersController {
       service?: string;
       trackingNo?: string;
       trackingUrl?: string;
-    }
+    },
   ) {
     return this.ordersService.fulfillOrder(id, body ?? {});
   }

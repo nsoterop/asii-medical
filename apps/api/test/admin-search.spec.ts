@@ -1,6 +1,8 @@
 import { AdminSearchController } from '../src/search/admin-search.controller';
+import { SearchService } from '../src/search/search.service';
 import { SearchStatusService } from '../src/search/search-status.service';
 import { SKUS_INDEX_NAME } from '../src/search/search.constants';
+import { IndexSkusJob } from '../src/search/index-skus.job';
 
 class MockSearchService {
   getIndexStats = jest.fn().mockResolvedValue({ numberOfDocuments: 12 });
@@ -22,9 +24,9 @@ describe('AdminSearchController', () => {
     statusService.lastIndexError = null;
 
     const controller = new AdminSearchController(
-      searchService as any,
-      new MockIndexJob() as any,
-      statusService
+      searchService as unknown as SearchService,
+      new MockIndexJob() as unknown as IndexSkusJob,
+      statusService,
     );
 
     const result = await controller.status();
@@ -38,7 +40,7 @@ describe('AdminSearchController', () => {
       lastIndexRunAt: '2025-01-01T00:00:00.000Z',
       lastIndexRunFetched: 10,
       lastIndexRunIndexed: 9,
-      lastIndexError: null
+      lastIndexError: null,
     });
   });
 
@@ -51,9 +53,9 @@ describe('AdminSearchController', () => {
     statusService.setRunCounts(5, 5);
 
     const controller = new AdminSearchController(
-      searchService as any,
-      indexJob as any,
-      statusService
+      searchService as unknown as SearchService,
+      indexJob as unknown as IndexSkusJob,
+      statusService,
     );
 
     const result = await controller.reindex();

@@ -1,12 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { getEnv } from '../env';
-import {
-  buildOrderConfirmation,
-  type OrderConfirmationData
-} from './templates/order-confirmation';
+import { buildOrderConfirmation, type OrderConfirmationData } from './templates/order-confirmation';
 import {
   buildShippingConfirmation,
-  type ShippingConfirmationData
+  type ShippingConfirmationData,
 } from './templates/shipping-confirmation';
 
 export type EmailMessage = {
@@ -42,15 +39,15 @@ class ResendEmailProvider implements EmailProvider {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         from: this.from,
         to: message.to,
         subject: message.subject,
         html: message.html,
-        text: message.text
-      })
+        text: message.text,
+      }),
     });
 
     if (!response.ok) {
@@ -90,7 +87,7 @@ export class EmailService {
 
   async sendShippingConfirmation(
     toEmail: string | null | undefined,
-    data: ShippingConfirmationData
+    data: ShippingConfirmationData,
   ) {
     if (!toEmail) {
       this.logger.warn('Shipping confirmation email skipped: missing recipient.');

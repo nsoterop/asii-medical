@@ -1,6 +1,7 @@
 import { IndexSkusJob } from '../src/search/index-skus.job';
 import { SearchService } from '../src/search/search.service';
 import { SearchStatusService } from '../src/search/search-status.service';
+import { PrismaService } from '../src/prisma/prisma.service';
 
 const sampleSku = {
   itemId: 1001,
@@ -18,28 +19,28 @@ const sampleSku = {
     productName: 'Widget A',
     productDescription: 'Desc A',
     manufacturer: { name: 'Acme' },
-    primaryCategoryPath: null
-  }
+    primaryCategoryPath: null,
+  },
 };
 
 describe('IndexSkusJob', () => {
   it('calls SearchService with expected document shape', async () => {
     const prisma = {
       sku: {
-        findMany: jest.fn().mockResolvedValueOnce([sampleSku])
-      }
-    } as any;
+        findMany: jest.fn().mockResolvedValueOnce([sampleSku]),
+      },
+    } as unknown as PrismaService;
 
     const index = {
       updateSettings: jest.fn().mockResolvedValue(undefined),
       deleteAllDocuments: jest.fn().mockResolvedValue({ taskUid: 2 }),
-      addDocuments: jest.fn().mockResolvedValue({ taskUid: 1 })
+      addDocuments: jest.fn().mockResolvedValue({ taskUid: 1 }),
     };
     const searchService = new SearchService();
-    (searchService as any).client = {
+    (searchService as unknown as { client: unknown }).client = {
       createIndex: jest.fn().mockResolvedValue(undefined),
       index: jest.fn().mockReturnValue(index),
-      waitForTask: jest.fn().mockResolvedValue(undefined)
+      waitForTask: jest.fn().mockResolvedValue(undefined),
     };
 
     const statusService = new SearchStatusService();
@@ -47,25 +48,28 @@ describe('IndexSkusJob', () => {
     const result = await job.run();
 
     expect(index.deleteAllDocuments).toHaveBeenCalled();
-    expect(index.addDocuments).toHaveBeenCalledWith([
-      {
-        skuItemId: 1001,
-        productId: 2001,
-        productName: 'Widget A',
-        productDescription: 'Desc A',
-        itemDescription: 'Widget A',
-        manufacturerName: 'Acme',
-        manufacturerItemCode: 'ACM-1001',
-        ndcItemCode: '12345',
-        nationalDrugCode: 'ND123',
-        categoryPathName: 'Uncategorized',
-        unitPrice: 12.34,
-        availabilityRaw: 'In Stock',
-        pkg: '1 each',
-        imageUrl: 'http://example.com/a.jpg',
-        isActive: true
-      }
-    ], { primaryKey: 'skuItemId' });
+    expect(index.addDocuments).toHaveBeenCalledWith(
+      [
+        {
+          skuItemId: 1001,
+          productId: 2001,
+          productName: 'Widget A',
+          productDescription: 'Desc A',
+          itemDescription: 'Widget A',
+          manufacturerName: 'Acme',
+          manufacturerItemCode: 'ACM-1001',
+          ndcItemCode: '12345',
+          nationalDrugCode: 'ND123',
+          categoryPathName: 'Uncategorized',
+          unitPrice: 12.34,
+          availabilityRaw: 'In Stock',
+          pkg: '1 each',
+          imageUrl: 'http://example.com/a.jpg',
+          isActive: true,
+        },
+      ],
+      { primaryKey: 'skuItemId' },
+    );
     expect(result).toEqual({ fetched: 1, indexed: 1 });
     expect(statusService.lastIndexRunFetched).toBe(1);
     expect(statusService.lastIndexRunIndexed).toBe(1);

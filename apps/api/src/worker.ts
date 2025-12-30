@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '..', '.env') });
 
 async function bootstrap() {
   await NestFactory.createApplicationContext(AppModule, {
-    logger: ['log', 'error', 'warn']
+    logger: ['log', 'error', 'warn'],
   });
 
   const logger = new Logger('WorkerBootstrap');

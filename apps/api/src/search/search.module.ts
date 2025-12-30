@@ -5,6 +5,6 @@ import { SearchStatusService } from './search-status.service';
 
 @Module({
   providers: [SearchService, SearchStatusService, IndexSkusJob],
-  exports: [SearchService, SearchStatusService, IndexSkusJob]
+  exports: [SearchService, SearchStatusService, IndexSkusJob],
 })
 export class SearchModule {}

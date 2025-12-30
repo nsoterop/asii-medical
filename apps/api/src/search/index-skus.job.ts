@@ -11,7 +11,7 @@ export class IndexSkusJob {
   constructor(
     private readonly prisma: PrismaService,
     private readonly searchService: SearchService,
-    private readonly statusService: SearchStatusService
+    private readonly statusService: SearchStatusService,
   ) {}
 
   async run() {
@@ -24,10 +24,10 @@ export class IndexSkusJob {
           product: {
             include: {
               manufacturer: true,
-              primaryCategoryPath: true
-            }
-          }
-        }
+              primaryCategoryPath: true,
+            },
+          },
+        },
       });
 
       const fetched = skus.length;
@@ -49,7 +49,7 @@ export class IndexSkusJob {
         availabilityRaw: sku.availabilityRaw ?? null,
         pkg: sku.pkg ?? null,
         imageUrl: sku.itemImageUrl ?? null,
-        isActive: sku.isActive
+        isActive: sku.isActive,
       }));
 
       const index = this.searchService.getIndex(SKUS_INDEX_NAME);

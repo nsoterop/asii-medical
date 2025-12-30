@@ -10,6 +10,6 @@ import { CheckoutService } from './checkout.service';
 @Module({
   imports: [AuthModule, PrismaModule, SquareModule, NotificationsModule, TaxModule],
   providers: [CheckoutService],
-  controllers: [CheckoutController]
+  controllers: [CheckoutController],
 })
 export class CheckoutModule {}

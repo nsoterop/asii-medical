@@ -48,23 +48,24 @@ export type ProductResponse = {
   skus: Array<{
     itemId: number;
     pkg: string | null;
-    unitPrice: any;
+    unitPrice: number | string | null;
     availabilityRaw: string | null;
     itemDescription: string | null;
     manufacturerItemCode?: string | null;
     ndcItemCode?: string | null;
     nationalDrugCode?: string | null;
     countryOfOrigin?: string | null;
+    uomFactor?: number | null;
+    unitWeight?: number | null;
+    unitVolume?: number | null;
+    hazMatClass?: string | null;
+    hazMatCode?: string | null;
+    harmonizedTariffCode?: string | null;
     itemImageUrl: string | null;
   }>;
 };
 
-function buildSearchParams(
-  q: string,
-  page: number,
-  pageSize: number,
-  filters: SearchFilters
-) {
+function buildSearchParams(q: string, page: number, pageSize: number, filters: SearchFilters) {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
   params.set('page', String(page));
@@ -89,7 +90,7 @@ export async function fetchCatalogSearch(
   q: string,
   page: number,
   pageSize: number,
-  filters: SearchFilters
+  filters: SearchFilters,
 ) {
   const params = buildSearchParams(q, page, pageSize, filters);
   const response = await fetch(`/api/catalog/search?${params.toString()}`);

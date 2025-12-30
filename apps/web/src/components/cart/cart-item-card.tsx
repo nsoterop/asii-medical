@@ -18,9 +18,7 @@ const getAvailabilityClass = (availability?: string | null) => {
 
 export default function CartItemCard({ item, onQuantityChange, onRemove }: CartItemCardProps) {
   const lineTotal =
-    item.unitPrice === null || item.unitPrice === undefined
-      ? null
-      : item.unitPrice * item.quantity;
+    item.unitPrice === null || item.unitPrice === undefined ? null : item.unitPrice * item.quantity;
   const productLabel = item.productName || item.itemDescription || `Item ${item.itemId}`;
   const availabilityLabel = item.availabilityRaw ?? 'Availability unknown';
   const ndcLabel = item.ndcItemCode ? `NDC Item Code: ${item.ndcItemCode}` : 'NDC Item Code: —';

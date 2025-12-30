@@ -46,7 +46,7 @@ export type SquarePaymentResponse = Payment & { id: string };
 @Injectable()
 export class SquareService {
   private readonly client: SquareClient;
-  private readonly locationId: string;
+  private readonly locationId?: string;
   private readonly currency: Currency;
   private readonly webhookSignatureKey?: string;
 
@@ -58,9 +58,7 @@ export class SquareService {
     this.client = new SquareClient({
       token: env.SQUARE_ACCESS_TOKEN,
       environment:
-        env.SQUARE_ENV === 'production'
-          ? SquareEnvironment.Production
-          : SquareEnvironment.Sandbox
+        env.SQUARE_ENV === 'production' ? SquareEnvironment.Production : SquareEnvironment.Sandbox,
     });
   }
 
@@ -69,6 +67,9 @@ export class SquareService {
   }
 
   getLocationId() {
+    if (!this.locationId) {
+      throw new Error('SQUARE_LOCATION_ID is not configured.');
+    }
     return this.locationId;
   }
 
@@ -76,7 +77,7 @@ export class SquareService {
     const response = await this.client.orders.create({
       idempotencyKey: input.idempotencyKey,
       order: {
-        locationId: this.locationId,
+        locationId: this.getLocationId(),
         referenceId: input.referenceId,
         lineItems: input.lineItems.map((item) => ({
           name: item.name,
@@ -84,16 +85,16 @@ export class SquareService {
           quantity: String(item.quantity),
           basePriceMoney: {
             amount: BigInt(item.amountCents),
-            currency: item.currency
-          }
+            currency: item.currency,
+          },
         })),
         taxes: input.taxes?.map((tax) => ({
           name: tax.name,
           percentage: tax.percentage,
           type: 'ADDITIVE',
-          scope: 'ORDER'
-        }))
-      }
+          scope: 'ORDER',
+        })),
+      },
     });
 
     if (response.errors?.length) {
@@ -116,9 +117,9 @@ export class SquareService {
       autocomplete: true,
       amountMoney: {
         amount: BigInt(input.amountCents),
-        currency: input.currency
+        currency: input.currency,
       },
-      buyerEmailAddress: input.buyerEmail ?? undefined
+      buyerEmailAddress: input.buyerEmail ?? undefined,
     });
 
     if (response.errors?.length) {
@@ -139,9 +140,9 @@ export class SquareService {
       paymentId: input.paymentId,
       amountMoney: {
         amount: BigInt(input.amountCents),
-        currency: input.currency
+        currency: input.currency,
       },
-      reason: input.reason ?? undefined
+      reason: input.reason ?? undefined,
     });
 
     if (response.errors?.length) {
@@ -165,7 +166,7 @@ export class SquareService {
       requestBody: body,
       signatureHeader: signature,
       signatureKey: this.webhookSignatureKey,
-      notificationUrl: url
+      notificationUrl: url,
     });
   }
 }

@@ -57,7 +57,7 @@
 .browseButton {
   border-radius: 999px;
   border: 1px solid #d6d6d6;
-  color: #414F64;
+  color: #414f64;
   padding: 0 16px;
   font-size: 14px;
   font-weight: 600;
@@ -80,15 +80,14 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
-  color: #414F64;
+  color: #414f64;
   filter: none;
 }
 
 .brand:hover {
-  color: #414F64;
+  color: #414f64;
   filter: none;
 }
-
 
 .searchPill {
   position: relative;
@@ -114,7 +113,7 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #414F64;
+  color: #414f64;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -130,9 +129,8 @@
 }
 
 .searchIconButton:hover {
-  color: #414F64;
+  color: #414f64;
 }
-
 
 .dropdown {
   position: absolute;
@@ -228,7 +226,7 @@
 .cartIcon {
   width: 20px;
   height: 20px;
-  color: #414F64;
+  color: #414f64;
 }
 
 .cartBadge {
@@ -329,8 +327,8 @@
 
 .cartViewButton {
   flex: 1;
-  border: 1px solid #414F64;
-  background: #414F64;
+  border: 1px solid #414f64;
+  background: #414f64;
   color: #fff;
   border-radius: 8px;
   padding: 8px 12px;

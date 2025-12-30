@@ -15,7 +15,7 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELED: 'Canceled',
   REFUNDED: 'Refunded',
   PARTIALLY_REFUNDED: 'Partially refunded',
-  FAILED: 'Failed'
+  FAILED: 'Failed',
 };
 
 const formatStatus = (status: string) => STATUS_LABELS[status] ?? status.toLowerCase();
@@ -41,7 +41,7 @@ const formatDate = (value: string) => {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 };
 

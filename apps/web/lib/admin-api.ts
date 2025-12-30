@@ -105,7 +105,7 @@ export function getImportRun(id: string) {
 
 export function getImportErrors(id: string, page: number, pageSize: number) {
   return adminFetch<ImportErrorPage>(
-    `/admin/imports/${id}/errors?page=${page}&pageSize=${pageSize}`
+    `/admin/imports/${id}/errors?page=${page}&pageSize=${pageSize}`,
   );
 }
 
@@ -118,7 +118,7 @@ export async function uploadImport(file: File, priceMarginPercent?: number) {
 
   const response = await authedFetch(`${BASE_URL}/admin/imports`, {
     method: 'POST',
-    body: formData
+    body: formData,
   });
 
   if (!response.ok) {
@@ -131,14 +131,11 @@ export async function uploadImport(file: File, priceMarginPercent?: number) {
 
 export function markImportFailed(id: string) {
   return adminFetch<ImportRun>(`/admin/imports/${id}/mark-failed`, {
-    method: 'POST'
+    method: 'POST',
   });
 }
 
-export function listAdminOrders(
-  status = 'paid',
-  options?: { query?: string; date?: string }
-) {
+export function listAdminOrders(status = 'paid', options?: { query?: string; date?: string }) {
   const params = new URLSearchParams();
   if (status) {
     params.set('status', status);
@@ -154,24 +151,24 @@ export function listAdminOrders(
 
 export function fulfillAdminOrder(
   id: string,
-  payload: { carrier?: string; service?: string; trackingNo?: string; trackingUrl?: string }
+  payload: { carrier?: string; service?: string; trackingNo?: string; trackingUrl?: string },
 ) {
   return adminFetch<{ status: string }>(`/admin/orders/${id}/fulfill`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 }
 
 export function markAdminOrderDelivered(id: string) {
   return adminFetch<{ status: string }>(`/admin/orders/${id}/mark-delivered`, {
-    method: 'POST'
+    method: 'POST',
   });
 }
 
 export function cancelAdminOrder(id: string) {
   return adminFetch<{ status: string }>(`/admin/orders/${id}/cancel`, {
-    method: 'POST'
+    method: 'POST',
   });
 }
 
@@ -181,11 +178,11 @@ export function getAdminProductByItemId(itemId: string | number) {
 
 export function updateAdminProductByItemId(
   itemId: string | number,
-  payload: { price?: number; imageUrl?: string | null }
+  payload: { price?: number; imageUrl?: string | null },
 ) {
   return adminFetch<AdminProductUpdate>(`/admin/products/by-item/${itemId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 }

@@ -10,7 +10,7 @@ import { UserStatus } from '@prisma/client';
 const verifySupabaseJwt = jest.fn();
 
 jest.mock('../src/auth/supabase-jwt', () => ({
-  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token)
+  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token),
 }));
 
 describe('Admin user activation', () => {
@@ -19,9 +19,9 @@ describe('Admin user activation', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
-    $queryRaw: jest.fn()
+    $queryRaw: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -32,11 +32,7 @@ describe('Admin user activation', () => {
 
     const moduleRef = await Test.createTestingModule({
       controllers: [AdminUsersController],
-      providers: [
-        SupabaseAuthGuard,
-        AdminGuard,
-        { provide: PrismaService, useValue: mockPrisma }
-      ]
+      providers: [SupabaseAuthGuard, AdminGuard, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -61,7 +57,7 @@ describe('Admin user activation', () => {
       id: 'user_1',
       email: 'a@test.com',
       supabaseUserId: 'supabase-1',
-      status: UserStatus.ACTIVE
+      status: UserStatus.ACTIVE,
     });
     mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: true }]);
     mockPrisma.user.update.mockResolvedValue({ id: 'user_1', status: 'ACTIVE' });

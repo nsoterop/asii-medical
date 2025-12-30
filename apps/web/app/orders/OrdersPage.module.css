@@ -31,7 +31,7 @@
 .filterButton {
   border: 1px solid #e5e5e5;
   background: #fff;
-  color: #414F64;
+  color: #414f64;
   padding: 12px 24px;
   border-radius: 999px;
   font-size: 14px;
@@ -43,8 +43,8 @@
 }
 
 .filterButtonActive {
-  background: #414F64;
-  border-color: #414F64;
+  background: #414f64;
+  border-color: #414f64;
   color: #fff;
   font-size: 13px;
   padding: 8px 12px;

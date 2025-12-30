@@ -6,6 +6,6 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [SearchModule, AuthModule],
   controllers: [AdminSearchController],
-  providers: []
+  providers: [],
 })
 export class AdminSearchModule {}

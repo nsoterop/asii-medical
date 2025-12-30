@@ -7,6 +7,6 @@ import { AuthModule } from '../auth/auth.module';
 @Module({
   imports: [SearchModule, AuthModule],
   controllers: [AdminProductsController],
-  providers: [AdminProductsService]
+  providers: [AdminProductsService],
 })
 export class AdminProductsModule {}

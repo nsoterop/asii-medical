@@ -1,14 +1,20 @@
 import { test, expect } from '@playwright/test';
+import type { Cookie } from '@playwright/test';
 
-const rawCookies = process.env.E2E_SUPABASE_COOKIES;
-let authCookies: Array<Record<string, any>> = [];
-if (rawCookies) {
+const parseCookies = (raw?: string): Cookie[] => {
+  if (!raw) return [];
   try {
-    authCookies = JSON.parse(rawCookies) as Array<Record<string, any>>;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((cookie): cookie is Cookie =>
+      Boolean(cookie && typeof cookie.name === 'string' && typeof cookie.value === 'string'),
+    );
   } catch {
-    authCookies = [];
+    return [];
   }
-}
+};
+
+const authCookies = parseCookies(process.env.E2E_SUPABASE_COOKIES);
 
 test.describe('checkout', () => {
   test.skip(authCookies.length === 0, 'E2E_SUPABASE_COOKIES not set.');
@@ -31,7 +37,7 @@ test.describe('checkout', () => {
               tokenize: async () => ({ status: 'OK', token: 'tok_test' })
             })
           })
-        };`
+        };`,
       });
     });
 
@@ -46,13 +52,13 @@ test.describe('checkout', () => {
               quantity: 1,
               productId: 10,
               productName: 'Exam Gloves',
-              unitPrice: 10
-            }
+              unitPrice: 10,
+            },
           ],
           totals: { subtotal: 10, totalQuantity: 1 },
           shipping: 'Calculated at checkout',
-          tax: 0
-        })
+          tax: 0,
+        }),
       });
     });
 
@@ -65,8 +71,8 @@ test.describe('checkout', () => {
           subtotalCents: 1000,
           taxCents: 80,
           amountCents: 1080,
-          currency: 'USD'
-        })
+          currency: 'USD',
+        }),
       });
     });
 
@@ -77,8 +83,8 @@ test.describe('checkout', () => {
         body: JSON.stringify({
           status: 'PAID',
           orderId: 'order_1',
-          squarePaymentId: 'pay_1'
-        })
+          squarePaymentId: 'pay_1',
+        }),
       });
     });
 
@@ -91,7 +97,7 @@ test.describe('checkout', () => {
 
     const [request] = await Promise.all([
       page.waitForRequest('**/api/checkout/pay'),
-      payButton.click()
+      payButton.click(),
     ]);
 
     const payload = request.postDataJSON() as {

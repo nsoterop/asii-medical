@@ -4,14 +4,29 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
+    "prebuild": "prisma generate",
     "build": "nest build",
     "start": "node dist/main.js",
     "lint": "eslint \"{src,test}/**/*.ts\"",
+    "format": "prettier --write \"{src,test}/**/*.ts\"",
+    "format:check": "prettier --check \"{src,test}/**/*.ts\"",
     "test": "jest",
+    "test:unit": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --config ./test/jest-e2e.json --passWithNoTests",
+    "pretypecheck": "prisma generate",
+    "typecheck": "tsc --noEmit -p tsconfig.build.json",
+    "env:check": "tsx src/env.ts",
+    "clean": "rm -rf dist coverage .turbo",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:status": "prisma migrate status",
+    "db:validate": "prisma validate",
+    "db:format": "prisma format",
     "db:generate": "prisma generate",
+    "db:ci": "prisma generate && prisma migrate deploy && prisma migrate status",
+    "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -49,6 +64,7 @@
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.2",
     "typescript": "^5.4.5"
   }
 }

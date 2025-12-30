@@ -16,7 +16,7 @@ export default function AdminImportsPage() {
 
   const hasActiveRun = useMemo(
     () => runs.some((run) => run.status === 'QUEUED' || run.status === 'RUNNING'),
-    [runs]
+    [runs],
   );
 
   const fetchRuns = async (silent = false) => {
@@ -189,9 +189,9 @@ export default function AdminImportsPage() {
                 return (
                   <tr key={run.id}>
                     <td>
-                    <Link href={`/admin/imports/${run.id}`} className="text-link">
-                      {run.id}
-                    </Link>
+                      <Link href={`/admin/imports/${run.id}`} className="text-link">
+                        {run.id}
+                      </Link>
                     </td>
                     <td>{run.status}</td>
                     <td>{new Date(run.createdAt).toLocaleString()}</td>

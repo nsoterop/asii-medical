@@ -10,7 +10,7 @@ import { UserStatus } from '@prisma/client';
 const verifySupabaseJwt = jest.fn();
 
 jest.mock('../src/auth/supabase-jwt', () => ({
-  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token)
+  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token),
 }));
 
 @Controller('admin-auth-test')
@@ -28,9 +28,9 @@ describe('AdminGuard', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
-    $queryRaw: jest.fn()
+    $queryRaw: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -41,11 +41,7 @@ describe('AdminGuard', () => {
 
     const moduleRef = await Test.createTestingModule({
       controllers: [AdminAuthTestController],
-      providers: [
-        SupabaseAuthGuard,
-        AdminGuard,
-        { provide: PrismaService, useValue: mockPrisma }
-      ]
+      providers: [SupabaseAuthGuard, AdminGuard, { provide: PrismaService, useValue: mockPrisma }],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -74,7 +70,7 @@ describe('AdminGuard', () => {
       id: 'user_1',
       email: 'a@test.com',
       supabaseUserId: 'supabase-1',
-      status: UserStatus.ACTIVE
+      status: UserStatus.ACTIVE,
     });
     mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: false }]);
 
@@ -90,7 +86,7 @@ describe('AdminGuard', () => {
       id: 'user_1',
       email: 'a@test.com',
       supabaseUserId: 'supabase-1',
-      status: UserStatus.ACTIVE
+      status: UserStatus.ACTIVE,
     });
     mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: true }]);
 

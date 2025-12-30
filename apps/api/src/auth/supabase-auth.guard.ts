@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { verifySupabaseJwt } from './supabase-jwt';
@@ -40,7 +35,7 @@ export class SupabaseAuthGuard implements CanActivate {
       request.auth = { supabaseUserId: payload.sub, email: payload.email };
 
       const existing = await this.prisma.user.findUnique({
-        where: { supabaseUserId: payload.sub }
+        where: { supabaseUserId: payload.sub },
       });
 
       if (!existing) {
@@ -48,14 +43,14 @@ export class SupabaseAuthGuard implements CanActivate {
           data: {
             supabaseUserId: payload.sub,
             email: payload.email ?? `user_${payload.sub}@example.com`,
-            status: UserStatus.PENDING_REVIEW
-          }
+            status: UserStatus.PENDING_REVIEW,
+          },
         });
         request.user = created;
       } else if (payload.email && existing.email !== payload.email) {
         const updated = await this.prisma.user.update({
           where: { id: existing.id },
-          data: { email: payload.email }
+          data: { email: payload.email },
         });
         request.user = updated;
       } else {

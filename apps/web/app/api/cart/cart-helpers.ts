@@ -64,7 +64,7 @@ export const getOrCreateActiveCart = async (userId: string) => {
       user_id: userId,
       status: 'ACTIVE',
       created_at: now,
-      updated_at: now
+      updated_at: now,
     })
     .select('id, user_id, status')
     .single();
@@ -115,7 +115,7 @@ export const addItemToCart = async (cartId: string, input: CartItemInput) => {
     currency: input.currency ?? 'USD',
     meta: input.meta ?? null,
     created_at: now,
-    updated_at: now
+    updated_at: now,
   });
 
   if (insertError) {

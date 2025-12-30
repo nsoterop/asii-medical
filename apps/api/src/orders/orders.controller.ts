@@ -1,12 +1,4 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Param,
-  Query,
-  Req,
-  UseGuards
-} from '@nestjs/common';
+import { BadRequestException, Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { SupabaseAuthGuard, AuthenticatedRequest } from '../auth/supabase-auth.guard';
 

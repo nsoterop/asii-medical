@@ -9,19 +9,23 @@ export async function GET(request: NextRequest) {
     nextParam && nextParam.startsWith('/') && !nextParam.startsWith('//') ? nextParam : '/';
   const response = NextResponse.redirect(new URL(redirectPath, request.url));
 
-  const supabase = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    cookies: {
-      get(name) {
-        return request.cookies.get(name)?.value;
+  const supabase = createServerClient(
+    env.NEXT_PUBLIC_SUPABASE_URL,
+    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: { [key: string]: unknown }) {
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: { [key: string]: unknown }) {
+          response.cookies.set({ name, value: '', ...options, maxAge: 0 });
+        },
       },
-      set(name, value, options) {
-        response.cookies.set({ name, value, ...options });
-      },
-      remove(name, options) {
-        response.cookies.set({ name, value: '', ...options, maxAge: 0 });
-      }
-    }
-  });
+    },
+  );
 
   const code = request.nextUrl.searchParams.get('code');
   if (code) {

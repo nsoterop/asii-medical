@@ -12,7 +12,7 @@ export class AuthController {
       id: user.id,
       email: user.email,
       status: user.status,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     };
   }
 }

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   getAdminProductByItemId,
   updateAdminProductByItemId,
-  type AdminProductUpdate
+  type AdminProductUpdate,
 } from '../../../lib/admin-api';
 
 const formatPrice = (price: number | null) => {
@@ -64,9 +64,7 @@ export default function AdminProductUpdatesPage() {
 
   const isDirty = useMemo(() => {
     if (!product) return false;
-    return (
-      form.price.trim() !== initialForm.price || form.imageUrl.trim() !== initialForm.imageUrl
-    );
+    return form.price.trim() !== initialForm.price || form.imageUrl.trim() !== initialForm.imageUrl;
   }, [form, initialForm, product]);
 
   const hasErrors = Boolean(priceError || imageUrlError);
@@ -87,7 +85,7 @@ export default function AdminProductUpdatesPage() {
       setProduct(data);
       const nextForm = {
         price: formatPrice(data.price),
-        imageUrl: data.imageUrl ?? ''
+        imageUrl: data.imageUrl ?? '',
       };
       setForm(nextForm);
       setInitialForm(nextForm);
@@ -120,12 +118,12 @@ export default function AdminProductUpdatesPage() {
       setSuccess('');
       const updated = await updateAdminProductByItemId(product.itemId, {
         price: parsedPrice,
-        imageUrl: form.imageUrl.trim() ? form.imageUrl.trim() : null
+        imageUrl: form.imageUrl.trim() ? form.imageUrl.trim() : null,
       });
       setProduct(updated);
       const nextForm = {
         price: formatPrice(updated.price),
-        imageUrl: updated.imageUrl ?? ''
+        imageUrl: updated.imageUrl ?? '',
       };
       setForm(nextForm);
       setInitialForm(nextForm);

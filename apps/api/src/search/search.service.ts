@@ -58,7 +58,7 @@ export class SearchService {
         'manufacturerItemCode',
         'ndcItemCode',
         'nationalDrugCode',
-        'categoryPathName'
+        'categoryPathName',
       ],
       filterableAttributes: [
         'manufacturerName',
@@ -66,12 +66,12 @@ export class SearchService {
         'availabilityRaw',
         'pkg',
         'isActive',
-        'unitPrice'
+        'unitPrice',
       ],
       sortableAttributes: ['unitPrice', 'productName'],
       faceting: {
-        maxValuesPerFacet: 2000
-      }
+        maxValuesPerFacet: 2000,
+      },
     });
   }
 
@@ -127,7 +127,7 @@ export class SearchService {
       limit: pageSize,
       offset: (page - 1) * pageSize,
       filter: filterExpressions.length > 0 ? filterExpressions.join(' AND ') : undefined,
-      facets: ['manufacturerName', 'categoryPathName', 'availabilityRaw', 'pkg', 'isActive']
+      facets: ['manufacturerName', 'categoryPathName', 'availabilityRaw', 'pkg', 'isActive'],
     });
 
     const total = response.estimatedTotalHits ?? response.hits.length;
@@ -137,7 +137,7 @@ export class SearchService {
       total,
       page,
       pageSize,
-      facets: response.facetDistribution ?? {}
+      facets: response.facetDistribution ?? {},
     };
   }
 

@@ -7,6 +7,9 @@ import { CsvParserService } from '../src/imports/csv-parser.service';
 import { ImportService } from '../src/imports/import.service';
 import { ImportWorker } from '../src/imports/import.worker';
 import { CategoryTreeService } from '../src/catalog/category-tree.service';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { IndexSkusJob } from '../src/search/index-skus.job';
+import { Queue } from 'bullmq';
 
 type TestContext = {
   prisma: PrismaClient;
@@ -33,14 +36,20 @@ describeIfDb('Import pipeline', () => {
 
   beforeAll(async () => {
     context.prisma = new PrismaClient({
-      datasources: { db: { url: testDbUrl } }
+      datasources: { db: { url: testDbUrl } },
     });
 
     const csvParser = new CsvParserService();
-    const categoryTreeService = new CategoryTreeService(context.prisma as any);
-    context.importService = new ImportService(context.prisma as any, csvParser, categoryTreeService);
-    const indexSkusJob = { run: jest.fn().mockResolvedValue(undefined) } as any;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    const categoryTreeService = new CategoryTreeService(context.prisma as unknown as PrismaService);
+    context.importService = new ImportService(
+      context.prisma as unknown as PrismaService,
+      csvParser,
+      categoryTreeService,
+    );
+    const indexSkusJob = {
+      run: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IndexSkusJob;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
     context.importWorker = new ImportWorker(context.importService, indexSkusJob, queue);
   });
 
@@ -59,14 +68,14 @@ describeIfDb('Import pipeline', () => {
       data: {
         status: 'QUEUED',
         originalFilename: 'sample.csv',
-        storedPath: run1CsvPath
-      }
+        storedPath: run1CsvPath,
+      },
     });
 
     await context.importWorker.handleImportJob(run1.id, run1CsvPath);
 
     const run1Result = await context.prisma.importRun.findUnique({
-      where: { id: run1.id }
+      where: { id: run1.id },
     });
 
     expect(run1Result?.status).toBe('SUCCEEDED');
@@ -82,7 +91,7 @@ describeIfDb('Import pipeline', () => {
     expect(await context.prisma.product.count()).toBe(2);
     expect(await context.prisma.sku.count()).toBe(3);
     const sku1001First = await context.prisma.sku.findUnique({
-      where: { itemId: 1001 }
+      where: { itemId: 1001 },
     });
     expect(sku1001First?.lastSeenImportRunId).toBe(run1.id);
     expect(sku1001First?.manufacturerItemCode).toBe('ACM-1001');
@@ -106,11 +115,11 @@ describeIfDb('Import pipeline', () => {
     expect(sku1001First?.brandId).toBe('BR1');
     expect(sku1001First?.brandName).toBe('BrandOne');
     const sku1003First = await context.prisma.sku.findUnique({
-      where: { itemId: 1003 }
+      where: { itemId: 1003 },
     });
     expect(sku1003First?.lastSeenImportRunId).toBe(run1.id);
     const product2002 = await context.prisma.product.findUnique({
-      where: { productId: 2002 }
+      where: { productId: 2002 },
     });
     expect(product2002?.primaryCategoryPathId).toBeNull();
     expect(await context.prisma.importRowError.count()).toBe(1);
@@ -118,7 +127,7 @@ describeIfDb('Import pipeline', () => {
     const secondCsvPath = path.join(os.tmpdir(), `sample-${Date.now()}.csv`);
     const secondCsv = [
       'ItemID,ManufacturerID,ManufacturerName,ProductID,ProductName,ProductDescription,ManufacturerItemCode,ItemDescription,ItemImageURL,NDCItemCode,Pkg,UnitPrice,PriceDescription,Availability,CategoryPathID,CategoryPathName,PackingListDescritpion,UnitWeight,UnitVolume,UOMFactor,CountryOfOrigin,HarmonizedTariffCode,HazMatClass,HazMatCode,PharmacyProductType,NationalDrugCode,BrandID,BrandName',
-      '1001,3001,Acme,2001,Widget A,Desc A,ACM-1001,Widget A - small,http://example.com/a.jpg,12345,1 each,12.34,MSRP,In Stock,cat-1,Consumables,Box of 1,1.2,0.3,10,USA,HT123,Class A,HM1,Type A,ND123,BR1,BrandOne'
+      '1001,3001,Acme,2001,Widget A,Desc A,ACM-1001,Widget A - small,http://example.com/a.jpg,12345,1 each,12.34,MSRP,In Stock,cat-1,Consumables,Box of 1,1.2,0.3,10,USA,HT123,Class A,HM1,Type A,ND123,BR1,BrandOne',
     ].join('\n');
 
     await writeFile(secondCsvPath, secondCsv);
@@ -127,14 +136,14 @@ describeIfDb('Import pipeline', () => {
       data: {
         status: 'QUEUED',
         originalFilename: 'sample-2.csv',
-        storedPath: secondCsvPath
-      }
+        storedPath: secondCsvPath,
+      },
     });
 
     await context.importWorker.handleImportJob(run2.id, secondCsvPath);
 
     const run2Result = await context.prisma.importRun.findUnique({
-      where: { id: run2.id }
+      where: { id: run2.id },
     });
 
     expect(run2Result?.status).toBe('SUCCEEDED');
@@ -144,16 +153,16 @@ describeIfDb('Import pipeline', () => {
     expect(run2Result?.deactivated).toBe(2);
 
     const sku2 = await context.prisma.sku.findUnique({
-      where: { itemId: 1002 }
+      where: { itemId: 1002 },
     });
     expect(sku2).toBeNull();
     const sku3 = await context.prisma.sku.findUnique({
-      where: { itemId: 1003 }
+      where: { itemId: 1003 },
     });
     expect(sku3).toBeNull();
 
     const sku1 = await context.prisma.sku.findUnique({
-      where: { itemId: 1001 }
+      where: { itemId: 1001 },
     });
     expect(sku1?.lastSeenImportRunId).toBe(run2.id);
 
@@ -169,14 +178,14 @@ describeIfDb('Import pipeline', () => {
       data: {
         status: 'QUEUED',
         originalFilename: 'sample.csv',
-        storedPath: marginCsvPath
-      }
+        storedPath: marginCsvPath,
+      },
     });
 
     await context.importWorker.handleImportJob(run.id, marginCsvPath, 10);
 
     const sku = await context.prisma.sku.findUnique({
-      where: { itemId: 1001 }
+      where: { itemId: 1001 },
     });
 
     expect(sku?.unitPrice?.toString()).toBe('13.57');
@@ -187,31 +196,33 @@ describeIfDb('Import pipeline', () => {
       data: {
         status: 'QUEUED',
         originalFilename: 'bad.csv',
-        storedPath: '/tmp/bad.csv'
-      }
+        storedPath: '/tmp/bad.csv',
+      },
     });
 
     const failingParser = {
       parseFile: async () => {
         throw new Error('boom');
       },
-      getRequiredHeaders: () => []
+      getRequiredHeaders: () => [],
     } as unknown as CsvParserService;
 
-    const categoryTreeService = new CategoryTreeService(context.prisma as any);
+    const categoryTreeService = new CategoryTreeService(context.prisma as unknown as PrismaService);
     const importService = new ImportService(
-      context.prisma as any,
+      context.prisma as unknown as PrismaService,
       failingParser,
-      categoryTreeService
+      categoryTreeService,
     );
-    const indexSkusJob = { run: jest.fn().mockResolvedValue(undefined) } as any;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    const indexSkusJob = {
+      run: jest.fn().mockResolvedValue(undefined),
+    } as unknown as IndexSkusJob;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
     const worker = new ImportWorker(importService, indexSkusJob, queue);
 
     await expect(worker.handleImportJob(run.id, '/tmp/bad.csv')).rejects.toThrow('boom');
 
     const updated = await context.prisma.importRun.findUnique({
-      where: { id: run.id }
+      where: { id: run.id },
     });
 
     expect(updated?.status).toBe('FAILED');
@@ -229,14 +240,14 @@ describe('ImportWorker enqueue behavior', () => {
         inserted: 1,
         updated: 0,
         deactivated: 0,
-        errorCount: 1
+        errorCount: 1,
       }),
       markSucceeded: jest.fn().mockResolvedValue(undefined),
-      markFailed: jest.fn().mockResolvedValue(undefined)
+      markFailed: jest.fn().mockResolvedValue(undefined),
     } as unknown as ImportService;
 
-    const indexSkusJob = { run: jest.fn() } as any;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    const indexSkusJob = { run: jest.fn() } as unknown as IndexSkusJob;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
 
     const worker = new ImportWorker(importService, indexSkusJob, queue);
     await worker.handleImportJob('run_1', '/tmp/file.csv');
@@ -249,11 +260,11 @@ describe('ImportWorker enqueue behavior', () => {
       markRunning: jest.fn().mockResolvedValue(undefined),
       processImport: jest.fn().mockRejectedValue(new Error('boom')),
       markSucceeded: jest.fn().mockResolvedValue(undefined),
-      markFailed: jest.fn().mockResolvedValue(undefined)
+      markFailed: jest.fn().mockResolvedValue(undefined),
     } as unknown as ImportService;
 
-    const indexSkusJob = { run: jest.fn() } as any;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as any;
+    const indexSkusJob = { run: jest.fn() } as unknown as IndexSkusJob;
+    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
 
     const worker = new ImportWorker(importService, indexSkusJob, queue);
     await expect(worker.handleImportJob('run_2', '/tmp/file.csv')).rejects.toThrow('boom');

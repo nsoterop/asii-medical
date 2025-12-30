@@ -12,7 +12,7 @@ export class AdminSearchController {
   constructor(
     private readonly searchService: SearchService,
     private readonly indexSkusJob: IndexSkusJob,
-    private readonly statusService: SearchStatusService
+    private readonly statusService: SearchStatusService,
   ) {}
 
   @Get('status')
@@ -27,7 +27,7 @@ export class AdminSearchController {
       lastIndexRunAt: this.statusService.lastIndexRunAt?.toISOString() ?? null,
       lastIndexRunFetched: this.statusService.lastIndexRunFetched,
       lastIndexRunIndexed: this.statusService.lastIndexRunIndexed,
-      lastIndexError: this.statusService.lastIndexError
+      lastIndexError: this.statusService.lastIndexError,
     };
   }
 

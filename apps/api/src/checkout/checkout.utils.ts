@@ -19,8 +19,7 @@ export const decimalToCents = (value: Prisma.Decimal | number | string) => {
   return Math.round(Number(value) * 100);
 };
 
-const hashKey = (value: string) =>
-  createHash('sha256').update(value).digest('hex').slice(0, 32);
+const hashKey = (value: string) => createHash('sha256').update(value).digest('hex').slice(0, 32);
 
 export const buildOrderIdempotencyKey = (seed: string) => {
   return `order_${hashKey(seed)}`;
@@ -84,7 +83,7 @@ const US_STATE_CODES = new Set([
   'WA',
   'WV',
   'WI',
-  'WY'
+  'WY',
 ]);
 
 const US_STATE_NAMES: Record<string, string> = {
@@ -137,7 +136,7 @@ const US_STATE_NAMES: Record<string, string> = {
   WASHINGTON: 'WA',
   WEST_VIRGINIA: 'WV',
   WISCONSIN: 'WI',
-  WYOMING: 'WY'
+  WYOMING: 'WY',
 };
 
 export const extractUsStateFromAddress = (value: string) => {
@@ -208,6 +207,6 @@ export const parseUsShippingAddress = (value: string): ShippingAddress => {
     city,
     state: match[1].toUpperCase(),
     zip: match[2],
-    country: 'US'
+    country: 'US',
   };
 };

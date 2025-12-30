@@ -6,7 +6,7 @@ import {
   Param,
   Post,
   Req,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { CheckoutService } from './checkout.service';
 import { SupabaseAuthGuard, AuthenticatedRequest } from '../auth/supabase-auth.guard';
@@ -17,10 +17,7 @@ export class CheckoutController {
   constructor(private readonly checkoutService: CheckoutService) {}
 
   @Post('create')
-  async create(
-    @Req() request: AuthenticatedRequest,
-    @Body() body: { shippingAddress?: string }
-  ) {
+  async create(@Req() request: AuthenticatedRequest, @Body() body: { shippingAddress?: string }) {
     const supabaseUserId = request.auth?.supabaseUserId;
     if (!supabaseUserId) {
       throw new BadRequestException('Missing auth context.');
@@ -38,7 +35,7 @@ export class CheckoutController {
       sourceId?: string;
       buyerEmail?: string;
       shippingAddress?: string;
-    }
+    },
   ) {
     const supabaseUserId = request.auth?.supabaseUserId;
     if (!supabaseUserId) {
@@ -49,22 +46,20 @@ export class CheckoutController {
       throw new BadRequestException('cartId, sourceId, and shippingAddress are required.');
     }
 
-    const buyerEmail = body?.buyerEmail?.trim() || request.auth?.email || request.user?.email || null;
+    const buyerEmail =
+      body?.buyerEmail?.trim() || request.auth?.email || request.user?.email || null;
 
     return this.checkoutService.payOrder({
       supabaseUserId,
       cartId: body.cartId,
       sourceId: body.sourceId,
       buyerEmail,
-      shippingAddress: body.shippingAddress
+      shippingAddress: body.shippingAddress,
     });
   }
 
   @Get(':orderId/status')
-  async status(
-    @Req() request: AuthenticatedRequest,
-    @Param('orderId') orderId: string
-  ) {
+  async status(@Req() request: AuthenticatedRequest, @Param('orderId') orderId: string) {
     const supabaseUserId = request.auth?.supabaseUserId;
     if (!supabaseUserId) {
       throw new BadRequestException('Missing auth context.');

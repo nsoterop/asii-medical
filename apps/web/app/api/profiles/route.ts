@@ -7,7 +7,7 @@ const profileSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   company: z.string().min(1),
-  location: z.string().min(1)
+  location: z.string().min(1),
 });
 
 export async function POST(request: NextRequest) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   }
 
   const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { persistSession: false }
+    auth: { persistSession: false },
   });
 
   const { error } = await supabaseAdmin.from('profiles').upsert(
@@ -34,9 +34,9 @@ export async function POST(request: NextRequest) {
       first_name: parsed.data.firstName,
       last_name: parsed.data.lastName,
       company: parsed.data.company,
-      location: parsed.data.location
+      location: parsed.data.location,
     },
-    { onConflict: 'id' }
+    { onConflict: 'id' },
   );
 
   if (error) {

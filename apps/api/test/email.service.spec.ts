@@ -9,7 +9,7 @@ describe('Email templates', () => {
       createdAt: '2024-01-01T00:00:00Z',
       currency: 'USD',
       total: 99.5,
-      items: [{ name: 'Gloves', qty: 2, unitPrice: 10 }]
+      items: [{ name: 'Gloves', qty: 2, unitPrice: 10 }],
     });
 
     expect(template.subject).toContain('order_123');
@@ -23,7 +23,7 @@ describe('Email templates', () => {
       shippedAt: '2024-02-02T00:00:00Z',
       carrier: 'UPS',
       trackingNo: '1Z999',
-      trackingUrl: 'https://track.example.com/1Z999'
+      trackingUrl: 'https://track.example.com/1Z999',
     });
 
     expect(template.subject).toContain('order_456');
@@ -48,7 +48,7 @@ describe('EmailService', () => {
     process.env.RESEND_API_KEY = 'test-key';
 
     const fetchMock = jest.fn().mockResolvedValue({ ok: true, text: async () => '' });
-    global.fetch = fetchMock as any;
+    global.fetch = fetchMock as unknown as typeof fetch;
 
     const service = new EmailService();
     await service.sendOrderConfirmation('buyer@example.com', {
@@ -56,7 +56,7 @@ describe('EmailService', () => {
       createdAt: new Date('2024-03-03T00:00:00Z'),
       currency: 'USD',
       total: 42,
-      items: [{ name: 'Mask', qty: 1, unitPrice: 42 }]
+      items: [{ name: 'Mask', qty: 1, unitPrice: 42 }],
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -64,9 +64,9 @@ describe('EmailService', () => {
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
-          Authorization: 'Bearer test-key'
-        })
-      })
+          Authorization: 'Bearer test-key',
+        }),
+      }),
     );
   });
 
@@ -77,8 +77,8 @@ describe('EmailService', () => {
     await expect(
       service.sendShippingConfirmation(null, {
         orderId: 'order_000',
-        shippedAt: new Date()
-      })
+        shippedAt: new Date(),
+      }),
     ).resolves.toBeUndefined();
   });
 });

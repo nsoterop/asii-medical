@@ -17,7 +17,7 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly importService: ImportService,
     private readonly indexSkusJob: IndexSkusJob,
-    @Inject(IMPORTS_QUEUE) private readonly importsQueue: Queue
+    @Inject(IMPORTS_QUEUE) private readonly importsQueue: Queue,
   ) {}
 
   onModuleInit() {
@@ -51,7 +51,7 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
 
         this.logger.warn(`Unknown job ${job.name}`);
       },
-      { connection }
+      { connection },
     );
 
     this.worker.on('failed', (job, error) => {
@@ -65,17 +65,13 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async handleImportJob(
-    importRunId: string,
-    filePath: string,
-    priceMarginPercent = 0
-  ) {
+  async handleImportJob(importRunId: string, filePath: string, priceMarginPercent = 0) {
     await this.importService.markRunning(importRunId);
     try {
       const stats = await this.importService.processImport(
         importRunId,
         filePath,
-        priceMarginPercent
+        priceMarginPercent,
       );
       await this.importService.markSucceeded(importRunId, stats);
       await this.importsQueue.add('index-skus', { importRunId });

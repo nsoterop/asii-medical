@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     });
     setLoading(false);
     if (signInError) {
@@ -33,46 +33,49 @@ export default function LoginPage() {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Log in</h1>
-            <p className={styles.subtitle}>Access your ASii Medical account</p>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Log in</h1>
+          <p className={styles.subtitle}>Access your ASii Medical account</p>
+        </div>
+        <form onSubmit={onSubmit} className={styles.form}>
+          <label className={styles.label}>
+            Email
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+              className={styles.input}
+            />
+          </label>
+          <label className={styles.label}>
+            Password
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              className={styles.input}
+            />
+          </label>
+          <div className={styles.forgotRow}>
+            <Link href="/forgot-password" className={`${styles.link} text-link`}>
+              Forgot password?
+            </Link>
           </div>
-          <form onSubmit={onSubmit} className={styles.form}>
-            <label className={styles.label}>
-              Email
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-                className={styles.input}
-              />
-            </label>
-            <label className={styles.label}>
-              Password
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                required
-                className={styles.input}
-              />
-            </label>
-            <div className={styles.forgotRow}>
-              <Link href="/forgot-password" className={`${styles.link} text-link`}>
-                Forgot password?
-              </Link>
-            </div>
-            {error ? <div className={styles.error}>{error}</div> : null}
-            <button type="submit" disabled={loading} className={styles.submit}>
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </form>
-          <div className={styles.footer}>
-            <span>Need an account?</span> <Link href="/signup" className="text-link">Sign up</Link>
-          </div>
+          {error ? <div className={styles.error}>{error}</div> : null}
+          <button type="submit" disabled={loading} className={styles.submit}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+        <div className={styles.footer}>
+          <span>Need an account?</span>{' '}
+          <Link href="/signup" className="text-link">
+            Sign up
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -17,7 +17,7 @@ import { AuthModule } from '../auth/auth.module';
     CsvParserService,
     ImportService,
     ImportReconcilerService,
-    ImportWorker
-  ]
+    ImportWorker,
+  ],
 })
 export class AdminImportsModule {}

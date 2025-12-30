@@ -1,15 +1,32 @@
-import {
-  BadRequestException,
-  Controller,
-  Headers,
-  Logger,
-  Post,
-  Req
-} from '@nestjs/common';
+import { BadRequestException, Controller, Headers, Logger, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { CartStatus, OrderStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SquareService } from './square.service';
+
+type SquarePaymentPayload = {
+  id?: string;
+  orderId?: string | null;
+  status?: string;
+};
+
+type SquareRefundPayload = {
+  paymentId?: string;
+  orderId?: string | null;
+  amountMoney?: {
+    amount?: number | string | null;
+  };
+};
+
+type SquareWebhookEvent = {
+  type?: string;
+  data?: {
+    object?: {
+      payment?: SquarePaymentPayload;
+      refund?: SquareRefundPayload;
+    };
+  };
+};
 
 @Controller('webhooks')
 export class SquareWebhookController {
@@ -17,13 +34,13 @@ export class SquareWebhookController {
 
   constructor(
     private readonly squareService: SquareService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
   ) {}
 
   @Post('square')
   async handleSquareWebhook(
     @Req() request: Request,
-    @Headers('x-square-hmacsha256-signature') signature?: string
+    @Headers('x-square-hmacsha256-signature') signature?: string,
   ) {
     if (!signature) {
       throw new BadRequestException('Missing Square signature.');
@@ -37,9 +54,9 @@ export class SquareWebhookController {
       throw new BadRequestException('Invalid Square signature.');
     }
 
-    let event: any = null;
+    let event: SquareWebhookEvent | null = null;
     try {
-      event = JSON.parse(rawBody);
+      event = JSON.parse(rawBody) as SquareWebhookEvent;
     } catch (error) {
       this.logger.warn('Square webhook payload was not valid JSON.');
     }
@@ -53,20 +70,17 @@ export class SquareWebhookController {
       if (payment?.id) {
         const order = await this.prisma.order.findFirst({
           where: {
-            OR: [
-              { squarePaymentId: payment.id },
-              { squareOrderId: payment.orderId ?? '' }
-            ]
-          }
+            OR: [{ squarePaymentId: payment.id }, { squareOrderId: payment.orderId ?? '' }],
+          },
         });
 
         if (order) {
           if (payment.status === 'COMPLETED') {
             await this.markOrderPaid(order, payment.id);
-          } else if (['FAILED', 'CANCELED'].includes(payment.status)) {
+          } else if (payment.status && ['FAILED', 'CANCELED'].includes(payment.status)) {
             if (order.status === OrderStatus.PENDING_PAYMENT) {
               await this.transitionOrderStatus(order, OrderStatus.FAILED, {
-                note: `Square payment ${payment.status?.toLowerCase() ?? 'failed'}`
+                note: `Square payment ${payment.status?.toLowerCase() ?? 'failed'}`,
               });
             }
           }
@@ -79,11 +93,8 @@ export class SquareWebhookController {
       if (refund?.paymentId) {
         const order = await this.prisma.order.findFirst({
           where: {
-            OR: [
-              { squarePaymentId: refund.paymentId },
-              { squareOrderId: refund.orderId ?? '' }
-            ]
-          }
+            OR: [{ squarePaymentId: refund.paymentId }, { squareOrderId: refund.orderId ?? '' }],
+          },
         });
 
         if (order) {
@@ -92,7 +103,7 @@ export class SquareWebhookController {
           const nextStatus =
             refundAmount >= totalAmount ? OrderStatus.REFUNDED : OrderStatus.PARTIALLY_REFUNDED;
           await this.transitionOrderStatus(order, nextStatus, {
-            note: 'Square refund processed'
+            note: 'Square refund processed',
           });
         }
       }
@@ -115,7 +126,10 @@ export class SquareWebhookController {
     return JSON.stringify(request.body ?? {});
   }
 
-  private async markOrderPaid(order: { id: string; cartId: string; status: OrderStatus; squarePaymentId: string | null }, paymentId: string) {
+  private async markOrderPaid(
+    order: { id: string; cartId: string; status: OrderStatus; squarePaymentId: string | null },
+    paymentId: string,
+  ) {
     const updates: Array<Prisma.PrismaPromise<unknown>> = [];
     const data: Prisma.OrderUpdateInput = { status: OrderStatus.PAID };
     if (!order.squarePaymentId) {
@@ -124,8 +138,8 @@ export class SquareWebhookController {
     updates.push(
       this.prisma.order.update({
         where: { id: order.id },
-        data
-      })
+        data,
+      }),
     );
     if (order.status !== OrderStatus.PAID) {
       updates.push(
@@ -133,16 +147,16 @@ export class SquareWebhookController {
           data: {
             orderId: order.id,
             from: order.status,
-            to: OrderStatus.PAID
-          }
-        })
+            to: OrderStatus.PAID,
+          },
+        }),
       );
     }
     updates.push(
       this.prisma.cart.update({
         where: { id: order.cartId },
-        data: { status: CartStatus.SUBMITTED }
-      })
+        data: { status: CartStatus.SUBMITTED },
+      }),
     );
 
     await this.prisma.$transaction(updates);
@@ -151,7 +165,7 @@ export class SquareWebhookController {
   private async transitionOrderStatus(
     order: { id: string; status: OrderStatus },
     nextStatus: OrderStatus,
-    options?: { note?: string }
+    options?: { note?: string },
   ) {
     if (order.status === nextStatus) {
       return;
@@ -160,16 +174,16 @@ export class SquareWebhookController {
     await this.prisma.$transaction([
       this.prisma.order.update({
         where: { id: order.id },
-        data: { status: nextStatus }
+        data: { status: nextStatus },
       }),
       this.prisma.orderStatusEvent.create({
         data: {
           orderId: order.id,
           from: order.status,
           to: nextStatus,
-          note: options?.note
-        }
-      })
+          note: options?.note,
+        },
+      }),
     ]);
   }
 }

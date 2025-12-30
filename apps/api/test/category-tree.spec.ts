@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CategoryTreeService } from '../src/catalog/category-tree.service';
+import { PrismaService } from '../src/prisma/prisma.service';
 import { buildCategoryNodes } from '../src/imports/category-utils';
 
 const testDbUrl = process.env.TEST_DATABASE_URL;
@@ -16,13 +17,13 @@ if (!testDbUrl) {
 
     beforeAll(async () => {
       prisma = new PrismaClient({
-        datasources: { db: { url: testDbUrl } }
+        datasources: { db: { url: testDbUrl } },
       });
     });
 
-  beforeEach(async () => {
-    await prisma.category.deleteMany();
-  });
+    beforeEach(async () => {
+      await prisma.category.deleteMany();
+    });
 
     afterAll(async () => {
       await prisma.$disconnect();
@@ -32,12 +33,12 @@ if (!testDbUrl) {
       const nodes = buildCategoryNodes([
         'Dental Merchandise>Anesthetics>Topicals',
         'Dental Merchandise>Infection Control',
-        'Medical Devices>Respiratory'
+        'Medical Devices>Respiratory',
       ]);
 
       await prisma.category.createMany({ data: nodes, skipDuplicates: true });
 
-      const service = new CategoryTreeService(prisma as any);
+      const service = new CategoryTreeService(prisma as unknown as PrismaService);
       const tree = await service.getTree();
 
       const dental = tree.find((node) => node.path === 'Dental Merchandise');
@@ -45,16 +46,14 @@ if (!testDbUrl) {
 
       expect(dental?.children.map((child) => child.path).sort()).toEqual([
         'Dental Merchandise>Anesthetics',
-        'Dental Merchandise>Infection Control'
+        'Dental Merchandise>Infection Control',
       ]);
       expect(
         dental?.children
           .find((child) => child.path === 'Dental Merchandise>Anesthetics')
-          ?.children.map((child) => child.path)
+          ?.children.map((child) => child.path),
       ).toEqual(['Dental Merchandise>Anesthetics>Topicals']);
-      expect(medical?.children.map((child) => child.path)).toEqual([
-        'Medical Devices>Respiratory'
-      ]);
+      expect(medical?.children.map((child) => child.path)).toEqual(['Medical Devices>Respiratory']);
     });
   });
 }

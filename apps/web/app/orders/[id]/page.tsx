@@ -16,14 +16,14 @@ const STATUS_LABELS: Record<string, string> = {
   CANCELED: 'Canceled',
   REFUNDED: 'Refunded',
   PARTIALLY_REFUNDED: 'Partially refunded',
-  FAILED: 'Failed'
+  FAILED: 'Failed',
 };
 
 const SHIPMENT_STATUS_LABELS: Record<string, string> = {
   PENDING: 'Pending',
   SHIPPED: 'Shipped',
   DELIVERED: 'Delivered',
-  CANCELED: 'Canceled'
+  CANCELED: 'Canceled',
 };
 
 const formatStatus = (status: string) => STATUS_LABELS[status] ?? status.toLowerCase();
@@ -67,7 +67,7 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 };
 
@@ -122,9 +122,7 @@ export default function OrderDetailsPage() {
       <div className={styles.titleRow}>
         <div>
           <h1 className={styles.title}>{order ? `Order ${order.id}` : 'Order details'}</h1>
-          <p className={styles.subtitle}>
-            Placed {order ? formatDate(order.createdAt) : '--'}
-          </p>
+          <p className={styles.subtitle}>Placed {order ? formatDate(order.createdAt) : '--'}</p>
         </div>
         {order ? (
           <div className={styles.headerMeta}>
@@ -185,7 +183,9 @@ export default function OrderDetailsPage() {
                     <div key={shipment.id} className={styles.shipmentRow}>
                       <div className={styles.shipmentDetails}>
                         <div className={styles.shipmentHeader}>
-                          <span className={`${styles.statusBadge} ${getShipmentTone(shipment.status)}`}>
+                          <span
+                            className={`${styles.statusBadge} ${getShipmentTone(shipment.status)}`}
+                          >
                             {formatShipmentStatus(shipment.status)}
                           </span>
                           {shipment.carrier || shipment.service ? (

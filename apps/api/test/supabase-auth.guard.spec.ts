@@ -2,7 +2,7 @@ import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { SupabaseAuthGuard } from '../src/auth/supabase-auth.guard';
+import { AuthenticatedRequest, SupabaseAuthGuard } from '../src/auth/supabase-auth.guard';
 import { ActiveUserGuard } from '../src/auth/active-user.guard';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { UserStatus } from '@prisma/client';
@@ -10,14 +10,14 @@ import { UserStatus } from '@prisma/client';
 const verifySupabaseJwt = jest.fn();
 
 jest.mock('../src/auth/supabase-jwt', () => ({
-  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token)
+  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token),
 }));
 
 @Controller('auth-test')
 class AuthTestController {
   @UseGuards(SupabaseAuthGuard)
   @Get('me')
-  getMe(@Req() req: any) {
+  getMe(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
 
@@ -34,8 +34,8 @@ describe('SupabaseAuthGuard', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn()
-    }
+      update: jest.fn(),
+    },
   };
 
   beforeAll(async () => {
@@ -49,8 +49,8 @@ describe('SupabaseAuthGuard', () => {
       providers: [
         SupabaseAuthGuard,
         ActiveUserGuard,
-        { provide: PrismaService, useValue: mockPrisma }
-      ]
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -89,7 +89,7 @@ describe('SupabaseAuthGuard', () => {
       supabaseUserId: 'supabase-1',
       status: UserStatus.PENDING_REVIEW,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     await request(app.getHttpServer())
@@ -108,7 +108,7 @@ describe('SupabaseAuthGuard', () => {
       supabaseUserId: 'supabase-1',
       status: UserStatus.PENDING_REVIEW,
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     });
 
     await request(app.getHttpServer())

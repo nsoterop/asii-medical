@@ -8,16 +8,14 @@ describe('buildCategoryNodes', () => {
     expect(paths).toEqual([
       'Dental Merchandise',
       'Dental Merchandise>Anesthetics',
-      'Dental Merchandise>Anesthetics>Topicals'
+      'Dental Merchandise>Anesthetics>Topicals',
     ]);
 
-    const topicals = nodes.find(
-      (node) => node.path === 'Dental Merchandise>Anesthetics>Topicals'
-    );
+    const topicals = nodes.find((node) => node.path === 'Dental Merchandise>Anesthetics>Topicals');
     expect(topicals).toMatchObject({
       name: 'Topicals',
       parentPath: 'Dental Merchandise>Anesthetics',
-      depth: 3
+      depth: 3,
     });
   });
 });

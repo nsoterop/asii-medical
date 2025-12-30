@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const data = (await response.json()) as GooglePlacesResponse;
   const results = (data.predictions ?? []).map((item) => ({
     id: item.place_id,
-    label: item.description
+    label: item.description,
   }));
 
   return NextResponse.json(results);

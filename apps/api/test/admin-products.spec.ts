@@ -10,13 +10,13 @@ import { UserStatus } from '@prisma/client';
 
 const mockAdminProductsService = {
   getByItemId: jest.fn(),
-  updateByItemId: jest.fn()
+  updateByItemId: jest.fn(),
 };
 
 const verifySupabaseJwt = jest.fn();
 
 jest.mock('../src/auth/supabase-jwt', () => ({
-  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token)
+  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token),
 }));
 
 describe('AdminProductsController', () => {
@@ -25,9 +25,9 @@ describe('AdminProductsController', () => {
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
-      update: jest.fn()
+      update: jest.fn(),
     },
-    $queryRaw: jest.fn()
+    $queryRaw: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -42,8 +42,8 @@ describe('AdminProductsController', () => {
         SupabaseAuthGuard,
         AdminGuard,
         { provide: AdminProductsService, useValue: mockAdminProductsService },
-        { provide: PrismaService, useValue: mockPrisma }
-      ]
+        { provide: PrismaService, useValue: mockPrisma },
+      ],
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -69,7 +69,7 @@ describe('AdminProductsController', () => {
       id: 'user_1',
       email: 'a@test.com',
       supabaseUserId: 'supabase-1',
-      status: UserStatus.ACTIVE
+      status: UserStatus.ACTIVE,
     });
     mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: true }]);
   };
@@ -81,7 +81,7 @@ describe('AdminProductsController', () => {
   it('returns 404 when item is not found', async () => {
     mockAdminAuth();
     mockAdminProductsService.getByItemId.mockRejectedValueOnce(
-      new NotFoundException('Item not found.')
+      new NotFoundException('Item not found.'),
     );
 
     await request(app.getHttpServer())
@@ -103,7 +103,7 @@ describe('AdminProductsController', () => {
       categoryPathName: null,
       imageUrl: null,
       price: 12.5,
-      currency: 'USD'
+      currency: 'USD',
     };
 
     mockAdminProductsService.getByItemId.mockResolvedValueOnce(payload);
@@ -147,7 +147,7 @@ describe('AdminProductsController', () => {
       categoryPathName: null,
       imageUrl: 'https://example.com/image.png',
       price: 99,
-      currency: 'USD'
+      currency: 'USD',
     };
 
     mockAdminProductsService.updateByItemId.mockResolvedValueOnce(payload);

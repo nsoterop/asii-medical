@@ -1,7 +1,17 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { fetchCartItems, getAuthedUser, getOrCreateActiveCart } from './cart-helpers';
 
-const mapItems = (items: any[]) => {
+type CartItemRow = {
+  id: string;
+  product_id: string | number | null;
+  variant_id: string | number | null;
+  qty: number;
+  unit_price: number | null;
+  currency: string | null;
+  meta: unknown;
+};
+
+const mapItems = (items: CartItemRow[]) => {
   return items.map((item) => {
     const meta = (item.meta ?? {}) as Record<string, unknown>;
     const variantId = item.variant_id ? String(item.variant_id) : null;
@@ -17,12 +27,12 @@ const mapItems = (items: any[]) => {
       availabilityRaw: meta.availabilityRaw ?? null,
       pkg: meta.pkg ?? null,
       ndcItemCode: meta.ndcItemCode ?? null,
-      imageUrl: meta.imageUrl ?? null
+      imageUrl: meta.imageUrl ?? null,
     };
   });
 };
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   const user = await getAuthedUser();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -41,6 +51,6 @@ export async function GET(_request: NextRequest) {
     items: normalized,
     totals: { subtotal, totalQuantity },
     shipping: 'Calculated at checkout',
-    tax: 0
+    tax: 0,
   });
 }

@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OrderStatus, Prisma, ShipmentStatus } from '@prisma/client';
 import type { Currency } from 'square';
 import { PrismaService } from '../prisma/prisma.service';
@@ -14,7 +9,7 @@ import { buildRefundIdempotencyKey, decimalToCents } from '../checkout/checkout.
 const OPEN_ORDER_STATUSES: OrderStatus[] = [
   OrderStatus.PAID,
   OrderStatus.FULFILLING,
-  OrderStatus.SHIPPED
+  OrderStatus.SHIPPED,
 ];
 
 @Injectable()
@@ -24,7 +19,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-    private readonly squareService: SquareService
+    private readonly squareService: SquareService,
   ) {}
 
   async listUserOrders(userId: string, status?: string) {
@@ -42,7 +37,7 @@ export class OrdersService {
     const orders = await this.prisma.order.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { items: true, shipments: true }
+      include: { items: true, shipments: true },
     });
     const hydrated = await Promise.all(orders.map((order) => this.ensureOrderItems(order)));
     return hydrated;
@@ -51,7 +46,7 @@ export class OrdersService {
   async getUserOrder(userId: string, orderId: string) {
     const order = await this.prisma.order.findFirst({
       where: { id: orderId, userId },
-      include: { items: true, shipments: true }
+      include: { items: true, shipments: true },
     });
 
     if (!order) {
@@ -61,17 +56,14 @@ export class OrdersService {
     return this.ensureOrderItems(order);
   }
 
-  async listAdminOrders(
-    status?: string,
-    filters?: { query?: string; date?: string }
-  ) {
+  async listAdminOrders(status?: string, filters?: { query?: string; date?: string }) {
     const where: Prisma.OrderWhereInput = {};
 
     if (status && status !== 'all') {
       const statusMap: Record<string, OrderStatus | OrderStatus[]> = {
         paid: [OrderStatus.PAID, OrderStatus.FULFILLING],
         shipped: OrderStatus.SHIPPED,
-        completed: OrderStatus.DELIVERED
+        completed: OrderStatus.DELIVERED,
       };
       const mapped = statusMap[status];
       if (!mapped) {
@@ -93,7 +85,7 @@ export class OrdersService {
         { items: { some: { name: { contains: query, mode: 'insensitive' } } } },
         { items: { some: { description: { contains: query, mode: 'insensitive' } } } },
         { shipments: { some: { trackingNo: { contains: query, mode: 'insensitive' } } } },
-        { shipments: { some: { trackingUrl: { contains: query, mode: 'insensitive' } } } }
+        { shipments: { some: { trackingUrl: { contains: query, mode: 'insensitive' } } } },
       ];
     }
 
@@ -111,21 +103,24 @@ export class OrdersService {
     const orders = await this.prisma.order.findMany({
       where,
       orderBy: { createdAt: 'desc' },
-      include: { items: true, shipments: true }
+      include: { items: true, shipments: true },
     });
     const hydrated = await Promise.all(orders.map((order) => this.ensureOrderItems(order)));
     return hydrated;
   }
 
-  async fulfillOrder(orderId: string, input: {
-    carrier?: string;
-    service?: string;
-    trackingNo?: string;
-    trackingUrl?: string;
-  }) {
+  async fulfillOrder(
+    orderId: string,
+    input: {
+      carrier?: string;
+      service?: string;
+      trackingNo?: string;
+      trackingUrl?: string;
+    },
+  ) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { shipments: true }
+      include: { shipments: true },
     });
 
     if (!order) {
@@ -133,7 +128,7 @@ export class OrdersService {
     }
 
     const pendingShipment = order.shipments.find(
-      (shipment) => shipment.status === ShipmentStatus.PENDING
+      (shipment) => shipment.status === ShipmentStatus.PENDING,
     );
     const sortedShipments = [...order.shipments].sort((a, b) => {
       const aTime = new Date(a.updatedAt ?? a.createdAt).getTime();
@@ -144,7 +139,9 @@ export class OrdersService {
     const shippedAt = new Date();
 
     const nextShipmentStatus =
-      existing?.status === ShipmentStatus.DELIVERED ? ShipmentStatus.DELIVERED : ShipmentStatus.SHIPPED;
+      existing?.status === ShipmentStatus.DELIVERED
+        ? ShipmentStatus.DELIVERED
+        : ShipmentStatus.SHIPPED;
     const shipmentData: Prisma.ShipmentCreateInput = {
       order: { connect: { id: order.id } },
       carrier: input.carrier ?? null,
@@ -152,7 +149,7 @@ export class OrdersService {
       trackingNo: input.trackingNo ?? null,
       trackingUrl: input.trackingUrl ?? null,
       shippedAt,
-      status: nextShipmentStatus
+      status: nextShipmentStatus,
     };
 
     const transaction: Array<Prisma.PrismaPromise<unknown>> = [];
@@ -167,9 +164,9 @@ export class OrdersService {
             trackingNo: shipmentData.trackingNo,
             trackingUrl: shipmentData.trackingUrl,
             shippedAt,
-            status: nextShipmentStatus
-          }
-        })
+            status: nextShipmentStatus,
+          },
+        }),
       );
     } else {
       transaction.push(this.prisma.shipment.create({ data: shipmentData }));
@@ -179,17 +176,17 @@ export class OrdersService {
       transaction.push(
         this.prisma.order.update({
           where: { id: order.id },
-          data: { status: OrderStatus.SHIPPED }
-        })
+          data: { status: OrderStatus.SHIPPED },
+        }),
       );
       transaction.push(
         this.prisma.orderStatusEvent.create({
           data: {
             orderId: order.id,
             from: order.status,
-            to: OrderStatus.SHIPPED
-          }
-        })
+            to: OrderStatus.SHIPPED,
+          },
+        }),
       );
     }
 
@@ -201,7 +198,7 @@ export class OrdersService {
       carrier: input.carrier,
       service: input.service,
       trackingNo: input.trackingNo,
-      trackingUrl: input.trackingUrl
+      trackingUrl: input.trackingUrl,
     });
 
     return { status: 'SHIPPED' };
@@ -210,7 +207,7 @@ export class OrdersService {
   async markDelivered(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { shipments: true }
+      include: { shipments: true },
     });
 
     if (!order) {
@@ -227,16 +224,16 @@ export class OrdersService {
         where: { id: target.id },
         data: {
           deliveredAt,
-          status: ShipmentStatus.DELIVERED
-        }
+          status: ShipmentStatus.DELIVERED,
+        },
       });
     } else {
       await this.prisma.shipment.create({
         data: {
           order: { connect: { id: order.id } },
           status: ShipmentStatus.DELIVERED,
-          deliveredAt
-        }
+          deliveredAt,
+        },
       });
     }
 
@@ -244,15 +241,15 @@ export class OrdersService {
       await this.prisma.$transaction([
         this.prisma.order.update({
           where: { id: order.id },
-          data: { status: OrderStatus.DELIVERED }
+          data: { status: OrderStatus.DELIVERED },
         }),
         this.prisma.orderStatusEvent.create({
           data: {
             orderId: order.id,
             from: order.status,
-            to: OrderStatus.DELIVERED
-          }
-        })
+            to: OrderStatus.DELIVERED,
+          },
+        }),
       ]);
     }
 
@@ -262,7 +259,7 @@ export class OrdersService {
   async cancelOrder(orderId: string) {
     const order = await this.prisma.order.findUnique({
       where: { id: orderId },
-      include: { shipments: true }
+      include: { shipments: true },
     });
 
     if (!order) {
@@ -277,7 +274,7 @@ export class OrdersService {
       OrderStatus.PAID,
       OrderStatus.FULFILLING,
       OrderStatus.PENDING_PAYMENT,
-      OrderStatus.FAILED
+      OrderStatus.FAILED,
     ]);
 
     if (!cancellableStatuses.has(order.status)) {
@@ -298,7 +295,7 @@ export class OrdersService {
           amountCents: decimalToCents(order.total),
           currency: order.currency as Currency,
           idempotencyKey: buildRefundIdempotencyKey(order.id, order.squarePaymentId),
-          reason: `Canceled order ${order.id}`
+          reason: `Canceled order ${order.id}`,
         });
         refundId = refund.id ?? null;
         nextStatus = OrderStatus.REFUNDED;
@@ -312,24 +309,24 @@ export class OrdersService {
     const updates: Array<Prisma.PrismaPromise<unknown>> = [
       this.prisma.order.update({
         where: { id: order.id },
-        data: { status: nextStatus }
+        data: { status: nextStatus },
       }),
       this.prisma.orderStatusEvent.create({
         data: {
           orderId: order.id,
           from: order.status,
           to: nextStatus,
-          note: refundId ? `Square refund ${refundId}` : undefined
-        }
-      })
+          note: refundId ? `Square refund ${refundId}` : undefined,
+        },
+      }),
     ];
 
     if (order.shipments.length > 0) {
       updates.push(
         this.prisma.shipment.updateMany({
           where: { orderId: order.id },
-          data: { status: ShipmentStatus.CANCELED }
-        })
+          data: { status: ShipmentStatus.CANCELED },
+        }),
       );
     }
 
@@ -347,7 +344,7 @@ export class OrdersService {
       service?: string;
       trackingNo?: string;
       trackingUrl?: string;
-    }
+    },
   ) {
     const user = await this.prisma.user.findUnique({ where: { supabaseUserId: userId } });
     if (!user?.email) {
@@ -362,7 +359,7 @@ export class OrdersService {
         carrier: shipment.carrier ?? null,
         service: shipment.service ?? null,
         trackingNo: shipment.trackingNo ?? null,
-        trackingUrl: shipment.trackingUrl ?? null
+        trackingUrl: shipment.trackingUrl ?? null,
       });
     } catch (error) {
       this.logger.warn(`Shipping email failed: ${(error as Error).message}`);
@@ -391,14 +388,14 @@ export class OrdersService {
     if (existingCount > 0) {
       const refreshed = await this.prisma.order.findUnique({
         where: { id: order.id },
-        include: { items: true, shipments: true }
+        include: { items: true, shipments: true },
       });
       return refreshed ?? order;
     }
 
     const cart = await this.prisma.cart.findUnique({
       where: { id: order.cartId },
-      include: { items: true }
+      include: { items: true },
     });
 
     if (!cart || cart.items.length === 0) {
@@ -415,7 +412,8 @@ export class OrdersService {
         typeof rawMeta.itemDescription === 'string' && rawMeta.itemDescription.trim()
           ? rawMeta.itemDescription
           : null;
-      const name = productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
+      const name =
+        productName || itemDescription || `Item ${item.variantId ?? item.productId ?? item.id}`;
       const description = itemDescription && itemDescription !== name ? itemDescription : null;
       const meta = {
         ...rawMeta,
@@ -426,7 +424,7 @@ export class OrdersService {
         manufacturerItemCode:
           typeof rawMeta.manufacturerItemCode === 'string'
             ? rawMeta.manufacturerItemCode
-            : undefined
+            : undefined,
       };
 
       return {
@@ -438,7 +436,7 @@ export class OrdersService {
         qty: item.qty,
         unitPrice: item.unitPrice,
         currency: item.currency ?? order.currency,
-        meta
+        meta,
       };
     });
 
@@ -446,7 +444,7 @@ export class OrdersService {
 
     const refreshed = await this.prisma.order.findUnique({
       where: { id: order.id },
-      include: { items: true, shipments: true }
+      include: { items: true, shipments: true },
     });
     return refreshed ?? order;
   }

@@ -5,7 +5,7 @@ import {
   Get,
   Param,
   Patch,
-  UseGuards
+  UseGuards,
 } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
@@ -29,7 +29,7 @@ export class AdminProductsController {
   @Patch('by-item/:itemId')
   async updateByItem(
     @Param('itemId') itemId: string,
-    @Body() body: { price?: unknown; imageUrl?: unknown }
+    @Body() body: { price?: unknown; imageUrl?: unknown },
   ) {
     const parsed = Number(itemId);
     if (!Number.isFinite(parsed)) {
@@ -59,8 +59,7 @@ export class AdminProductsController {
       if (body.price === null || body.price === '') {
         throw new BadRequestException('Price must be a number.');
       }
-      const parsedPrice =
-        typeof body.price === 'number' ? body.price : Number(body.price);
+      const parsedPrice = typeof body.price === 'number' ? body.price : Number(body.price);
       if (!Number.isFinite(parsedPrice)) {
         throw new BadRequestException('Price must be a number.');
       }
@@ -95,7 +94,7 @@ export class AdminProductsController {
 
     return this.adminProductsService.updateByItemId(parsed, {
       price,
-      imageUrl
+      imageUrl,
     });
   }
 }

@@ -59,7 +59,7 @@ export const fetchOrders = async (status = 'open'): Promise<OrderResponse[]> => 
 
 export const fetchOrder = async (orderId: string): Promise<OrderResponse> => {
   const response = await authedFetch(`/api/orders/${orderId}`, {
-    cache: 'no-store'
+    cache: 'no-store',
   });
   if (!response.ok) {
     throw new Error((await parseError(response)) || 'Unable to load order.');

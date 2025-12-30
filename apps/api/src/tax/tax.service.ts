@@ -36,7 +36,7 @@ export class TaxService {
       city: env.TAX_ORIGIN_CITY ?? '',
       state: env.TAX_ORIGIN_STATE ?? '',
       zip: env.TAX_ORIGIN_ZIP ?? '',
-      country: env.TAX_ORIGIN_COUNTRY ?? 'US'
+      country: env.TAX_ORIGIN_COUNTRY ?? 'US',
     };
     this.stateRates = this.parseStateRates(env.TAX_STATE_RATES);
   }
@@ -80,7 +80,7 @@ export class TaxService {
 
     const subtotal = input.lineItems.reduce(
       (acc, item) => acc.plus(new Prisma.Decimal(item.unitPrice).mul(item.quantity)),
-      new Prisma.Decimal(0)
+      new Prisma.Decimal(0),
     );
     const taxAmount = subtotal.mul(rate);
     const taxCents = Math.round(Number(taxAmount) * 100);
@@ -116,7 +116,10 @@ export class TaxService {
   }
 
   private parseCsvRates(value: string) {
-    const entries = value.split(',').map((part) => part.trim()).filter(Boolean);
+    const entries = value
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
     const data: Record<string, unknown> = {};
     entries.forEach((entry) => {
       const [state, rate] = entry.split(':').map((part) => part.trim());
@@ -136,11 +139,7 @@ export class TaxService {
         return;
       }
       const numeric =
-        typeof rateRaw === 'number'
-          ? rateRaw
-          : typeof rateRaw === 'string'
-            ? Number(rateRaw)
-            : NaN;
+        typeof rateRaw === 'number' ? rateRaw : typeof rateRaw === 'string' ? Number(rateRaw) : NaN;
       if (!Number.isFinite(numeric)) {
         this.logger.warn(`Invalid tax rate for ${state}: ${String(rateRaw)}`);
         return;

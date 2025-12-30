@@ -8,7 +8,7 @@ const bodySchema = z.object({
   qty: z.number().int().min(1).max(999),
   unitPrice: z.number().min(0),
   currency: z.string().min(1).optional(),
-  meta: z.record(z.any()).optional().nullable()
+  meta: z.record(z.any()).optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {

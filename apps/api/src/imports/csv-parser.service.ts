@@ -39,7 +39,7 @@ export class CsvParserService {
     'PharmacyProductType',
     'NationalDrugCode',
     'BrandID',
-    'BrandName'
+    'BrandName',
   ];
 
   getRequiredHeaders() {
@@ -54,7 +54,7 @@ export class CsvParserService {
       to_line: 1,
       bom: true,
       relax_column_count: true,
-      trim: true
+      trim: true,
     }) as string[][];
 
     if (headerRows.length === 0) {
@@ -62,9 +62,7 @@ export class CsvParserService {
     }
 
     const headers = headerRows[0].map((header) => String(header).trim());
-    const missingHeaders = this.requiredHeaders.filter(
-      (required) => !headers.includes(required)
-    );
+    const missingHeaders = this.requiredHeaders.filter((required) => !headers.includes(required));
 
     if (missingHeaders.length > 0) {
       throw new MissingHeadersError(missingHeaders);
@@ -75,7 +73,7 @@ export class CsvParserService {
       from_line: 2,
       skip_empty_lines: true,
       relax_column_count: true,
-      trim: true
+      trim: true,
     }) as Record<string, string>[];
   }
 }

@@ -42,7 +42,7 @@ export default function ProductPage() {
             (sku) =>
               sku.availabilityRaw?.toLowerCase().includes('stock') &&
               sku.unitPrice !== null &&
-              sku.unitPrice !== undefined
+              sku.unitPrice !== undefined,
           ) ||
           response.skus[0];
         const nextSkuId = defaultSku?.itemId ?? null;
@@ -62,7 +62,7 @@ export default function ProductPage() {
     };
 
     load();
-  }, [productId, router]);
+  }, [productId, router, searchParams]);
 
   useEffect(() => {
     if (!product) return;
@@ -283,7 +283,7 @@ export default function ProductPage() {
                     pkg: selectedSku.pkg,
                     ndcItemCode: selectedSku.ndcItemCode,
                     unitPrice: selectedSku.unitPrice ? Number(selectedSku.unitPrice) : null,
-                    imageUrl: selectedSku.itemImageUrl
+                    imageUrl: selectedSku.itemImageUrl,
                   };
                   if (isLoggedIn) {
                     try {
@@ -338,7 +338,9 @@ export default function ProductPage() {
                         </td>
                         <td className={styles.colPkg}>{sku.pkg ?? '—'}</td>
                         <td className={styles.colPrice}>
-                          {sku.unitPrice ? `$${Number(sku.unitPrice).toFixed(2)}` : 'Price on request'}
+                          {sku.unitPrice
+                            ? `$${Number(sku.unitPrice).toFixed(2)}`
+                            : 'Price on request'}
                         </td>
                         <td className={styles.colAvailability}>{sku.availabilityRaw ?? '—'}</td>
                       </tr>
@@ -364,7 +366,9 @@ export default function ProductPage() {
               <h3 className={styles.sectionLabel}>Details</h3>
               <div className={styles.detailsGrid}>
                 {detailRows
-                  .filter((row) => row.value !== null && row.value !== undefined && row.value !== '')
+                  .filter(
+                    (row) => row.value !== null && row.value !== undefined && row.value !== '',
+                  )
                   .map((row) => (
                     <div key={row.label} className={styles.detailRow}>
                       <span className={styles.detailLabel}>{row.label}</span>

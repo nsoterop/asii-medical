@@ -8,6 +8,6 @@ import { SearchModule } from '../search/search.module';
   imports: [SearchModule],
   controllers: [CatalogController],
   providers: [CatalogService, CategoryTreeService],
-  exports: [CategoryTreeService]
+  exports: [CategoryTreeService],
 })
 export class CatalogModule {}

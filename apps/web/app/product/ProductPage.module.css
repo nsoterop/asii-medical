@@ -1,5 +1,10 @@
 .wrapper {
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   color: #1f1f1f;
 }
 
@@ -354,8 +359,8 @@
 
 .addButton {
   width: 100%;
-  border: 1px solid #414F64;
-  background: #414F64;
+  border: 1px solid #414f64;
+  background: #414f64;
   color: #fff;
   border-radius: 8px;
   padding: 10px 14px;
@@ -379,7 +384,6 @@
   border-top-color: #fff;
   animation: spin 0.8s linear infinite;
 }
-
 
 .skuSummary {
   font-size: 13px;
@@ -484,7 +488,7 @@
 .secondaryButton {
   border-radius: 999px;
   border: 1px solid #d6d6d6;
-  color: #414F64;
+  color: #414f64;
   padding: 10px 20px;
   font-size: 14px;
   font-weight: 600;
@@ -512,21 +516,22 @@
 
 @media (min-width: 1024px) {
   .heroGrid {
-    grid-template-columns: 420px 1fr 420px;
+    grid-template-columns: 420px minmax(0, 1fr) 420px;
+    grid-template-areas: 'image info cart';
     column-gap: 32px;
     row-gap: 32px;
   }
 
   .heroImageColumn {
-    grid-column: auto;
+    grid-area: image;
   }
 
   .heroContent {
-    grid-column: auto;
+    grid-area: info;
   }
 
   .buyColumn {
-    grid-column: auto;
+    grid-area: cart;
     display: flex;
     justify-content: flex-end;
   }

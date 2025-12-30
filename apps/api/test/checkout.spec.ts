@@ -2,8 +2,25 @@ import { BadRequestException } from '@nestjs/common';
 import { CartStatus, OrderStatus, Prisma } from '@prisma/client';
 import { CheckoutService } from '../src/checkout/checkout.service';
 import { buildPaymentIdempotencyKey } from '../src/checkout/checkout.utils';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { SquareService } from '../src/square/square.service';
+import { EmailService } from '../src/notifications/email.service';
+import { TaxService } from '../src/tax/tax.service';
 
-const makeCartItem = (overrides?: Partial<any>) => ({
+type CartItemSnapshot = {
+  id: string;
+  cartId: string;
+  productId: string;
+  variantId: string | null;
+  qty: number;
+  unitPrice: Prisma.Decimal;
+  currency: string;
+  meta: { productName?: string; itemDescription?: string };
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+const makeCartItem = (overrides?: Partial<CartItemSnapshot>): CartItemSnapshot => ({
   id: 'item_1',
   cartId: 'cart_1',
   productId: 'product_1',
@@ -14,56 +31,56 @@ const makeCartItem = (overrides?: Partial<any>) => ({
   meta: { productName: 'Gloves', itemDescription: 'Latex gloves' },
   createdAt: new Date(),
   updatedAt: new Date(),
-  ...overrides
+  ...overrides,
 });
 
 describe('CheckoutService', () => {
   const squareService = {
     getDefaultCurrency: jest.fn().mockReturnValue('USD'),
     createSquareOrderFromCart: jest.fn(),
-    createPayment: jest.fn()
+    createPayment: jest.fn(),
   };
 
   const emailService = {
-    sendOrderConfirmation: jest.fn()
+    sendOrderConfirmation: jest.fn(),
   };
 
   const taxService = {
     calculateSalesTax: jest.fn(),
-    isManualProvider: jest.fn().mockReturnValue(true)
+    isManualProvider: jest.fn().mockReturnValue(true),
   };
 
   const prisma = {
     cart: {
       findFirst: jest.fn(),
       update: jest.fn(),
-      findUnique: jest.fn()
+      findUnique: jest.fn(),
     },
     order: {
       upsert: jest.fn(),
       findFirst: jest.fn(),
       update: jest.fn(),
-      create: jest.fn()
+      create: jest.fn(),
     },
     orderStatusEvent: {
-      create: jest.fn()
+      create: jest.fn(),
     },
     orderItem: {
       count: jest.fn(),
       createMany: jest.fn(),
-      findMany: jest.fn()
+      findMany: jest.fn(),
     },
     shipment: {
-      create: jest.fn()
+      create: jest.fn(),
     },
-    $transaction: jest.fn(async (ops: Array<Promise<unknown>>) => Promise.all(ops))
+    $transaction: jest.fn(async (ops: Array<Promise<unknown>>) => Promise.all(ops)),
   };
 
   const service = new CheckoutService(
-    prisma as any,
-    squareService as any,
-    emailService as any,
-    taxService as any
+    prisma as unknown as PrismaService,
+    squareService as unknown as SquareService,
+    emailService as unknown as EmailService,
+    taxService as unknown as TaxService,
   );
 
   beforeEach(() => {
@@ -74,7 +91,9 @@ describe('CheckoutService', () => {
   it('throws when cart is empty', async () => {
     prisma.cart.findFirst.mockResolvedValue(null);
 
-    await expect(service.createCheckoutOrder('user_1', '123 Main St, Austin, TX 78701')).rejects.toThrow(BadRequestException);
+    await expect(
+      service.createCheckoutOrder('user_1', '123 Main St, Austin, TX 78701'),
+    ).rejects.toThrow(BadRequestException);
   });
 
   it('creates a checkout response from cart', async () => {
@@ -82,7 +101,10 @@ describe('CheckoutService', () => {
       id: 'cart_1',
       userId: 'user_1',
       status: CartStatus.ACTIVE,
-      items: [makeCartItem(), makeCartItem({ id: 'item_2', qty: 1, unitPrice: new Prisma.Decimal('5.00') })]
+      items: [
+        makeCartItem(),
+        makeCartItem({ id: 'item_2', qty: 1, unitPrice: new Prisma.Decimal('5.00') }),
+      ],
     };
     prisma.cart.findFirst.mockResolvedValue(cart);
     taxService.calculateSalesTax.mockResolvedValue({ taxCents: 240, rate: 0.08 });
@@ -96,7 +118,7 @@ describe('CheckoutService', () => {
       subtotalCents: 3000,
       taxCents: 240,
       amountCents: 3240,
-      currency: 'USD'
+      currency: 'USD',
     });
   });
 
@@ -108,8 +130,8 @@ describe('CheckoutService', () => {
         supabaseUserId: 'user_1',
         cartId: 'cart_1',
         sourceId: 'token',
-        shippingAddress: '123 Main St, Austin, TX 78701'
-      })
+        shippingAddress: '123 Main St, Austin, TX 78701',
+      }),
     ).rejects.toThrow(BadRequestException);
   });
 
@@ -118,7 +140,7 @@ describe('CheckoutService', () => {
       id: 'cart_1',
       userId: 'user_1',
       status: CartStatus.SUBMITTED,
-      items: [makeCartItem()]
+      items: [makeCartItem()],
     });
     prisma.order.findFirst.mockResolvedValue({
       id: 'order_1',
@@ -128,7 +150,7 @@ describe('CheckoutService', () => {
       items: [],
       shipments: [],
       squarePaymentId: 'pay_1',
-      currency: 'USD'
+      currency: 'USD',
     });
     prisma.orderItem.count.mockResolvedValue(1);
 
@@ -136,7 +158,7 @@ describe('CheckoutService', () => {
       supabaseUserId: 'user_1',
       cartId: 'cart_1',
       sourceId: 'token',
-      shippingAddress: '123 Main St, Austin, TX 78701'
+      shippingAddress: '123 Main St, Austin, TX 78701',
     });
 
     expect(result.status).toBe('PAID');
@@ -150,11 +172,14 @@ describe('CheckoutService', () => {
       userId: 'user_1',
       status: CartStatus.ACTIVE,
       cartId: 'cart_1',
-      items: [makeCartItem({ cartId: 'cart_1', productId: 'product_1', variantId: 'variant_1' })]
+      items: [makeCartItem({ cartId: 'cart_1', productId: 'product_1', variantId: 'variant_1' })],
     });
     taxService.calculateSalesTax.mockResolvedValue({ taxCents: 200, rate: 0.1 });
     squareService.createSquareOrderFromCart.mockResolvedValue({ id: 'sq_order_1' });
-    squareService.createPayment.mockResolvedValue({ id: 'pay_1', receiptUrl: 'https://example.com' });
+    squareService.createPayment.mockResolvedValue({
+      id: 'pay_1',
+      receiptUrl: 'https://example.com',
+    });
     prisma.order.findFirst.mockResolvedValue(null);
     prisma.order.create.mockResolvedValue({
       id: 'order_1',
@@ -166,18 +191,16 @@ describe('CheckoutService', () => {
       createdAt: new Date(),
       cartId: 'cart_1',
       items: [],
-      shipments: []
+      shipments: [],
     });
     prisma.cart.update.mockResolvedValue({ id: 'cart_1' });
     prisma.orderItem.count.mockResolvedValue(0);
     prisma.cart.findUnique.mockResolvedValue({
       id: 'cart_1',
-      items: [
-        makeCartItem({ cartId: 'cart_1', productId: 'product_1', variantId: 'variant_1' })
-      ]
+      items: [makeCartItem({ cartId: 'cart_1', productId: 'product_1', variantId: 'variant_1' })],
     });
     prisma.orderItem.findMany.mockResolvedValue([
-      { name: 'Gloves', qty: 2, unitPrice: new Prisma.Decimal('12.50') }
+      { name: 'Gloves', qty: 2, unitPrice: new Prisma.Decimal('12.50') },
     ]);
 
     const result = await service.payOrder({
@@ -185,13 +208,13 @@ describe('CheckoutService', () => {
       cartId: 'cart_1',
       sourceId: 'token_1',
       buyerEmail: 'buyer@example.com',
-      shippingAddress: '123 Main St, Austin, TX 78701'
+      shippingAddress: '123 Main St, Austin, TX 78701',
     });
 
     expect(squareService.createPayment).toHaveBeenCalledWith(
       expect.objectContaining({
-        idempotencyKey: buildPaymentIdempotencyKey('cart_1', 'token_1')
-      })
+        idempotencyKey: buildPaymentIdempotencyKey('cart_1', 'token_1'),
+      }),
     );
     expect(prisma.$transaction).toHaveBeenCalled();
     expect(prisma.order.create).toHaveBeenCalled();
@@ -201,7 +224,7 @@ describe('CheckoutService', () => {
       status: 'PAID',
       orderId: 'order_1',
       squarePaymentId: 'pay_1',
-      receiptUrl: 'https://example.com'
+      receiptUrl: 'https://example.com',
     });
   });
 });

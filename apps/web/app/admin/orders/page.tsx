@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   cancelAdminOrder,
@@ -8,7 +8,7 @@ import {
   listAdminOrders,
   markAdminOrderDelivered,
   type AdminOrder,
-  type AdminShipment
+  type AdminShipment,
 } from '../../../lib/admin-api';
 import { formatCurrency } from '../../../src/lib/format';
 
@@ -23,7 +23,7 @@ const statusOptions = [
   { value: 'paid', label: 'Paid' },
   { value: 'shipped', label: 'Shipped' },
   { value: 'completed', label: 'Completed' },
-  { value: 'all', label: 'All' }
+  { value: 'all', label: 'All' },
 ];
 
 const formatStatus = (status: string) => status.replace(/_/g, ' ').toLowerCase();
@@ -86,9 +86,15 @@ const isShipmentFormComplete = (form?: ShipmentForm) => {
 const canMarkShipped = (status: string) => status === 'PAID' || status === 'FULFILLING';
 const canMarkDelivered = (status: string) => status === 'SHIPPED';
 const canCancel = (status: string) =>
-  status === 'PAID' || status === 'FULFILLING' || status === 'PENDING_PAYMENT' || status === 'FAILED';
+  status === 'PAID' ||
+  status === 'FULFILLING' ||
+  status === 'PENDING_PAYMENT' ||
+  status === 'FAILED';
 const isTerminal = (status: string) =>
-  status === 'DELIVERED' || status === 'CANCELED' || status === 'REFUNDED' || status === 'PARTIALLY_REFUNDED';
+  status === 'DELIVERED' ||
+  status === 'CANCELED' ||
+  status === 'REFUNDED' ||
+  status === 'PARTIALLY_REFUNDED';
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);
@@ -102,13 +108,14 @@ export default function AdminOrdersPage() {
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [formState, setFormState] = useState<Record<string, ShipmentForm>>({});
   const searchReady = useRef(false);
+  const previousFilter = useRef(filter);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
       const data = await listAdminOrders(filter, {
         query: searchInput.trim() || undefined,
-        date: dateInput || undefined
+        date: dateInput || undefined,
       });
       setOrders(data);
       setError('');
@@ -118,22 +125,29 @@ export default function AdminOrdersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, searchInput, dateInput]);
 
   useEffect(() => {
-    fetchOrders();
-  }, [filter]);
+    const isFirstRun = !searchReady.current;
+    const filterChanged = previousFilter.current !== filter;
+    previousFilter.current = filter;
 
-  useEffect(() => {
-    if (!searchReady.current) {
+    if (isFirstRun) {
       searchReady.current = true;
+      fetchOrders();
       return;
     }
+
+    if (filterChanged) {
+      fetchOrders();
+      return;
+    }
+
     const handle = setTimeout(() => {
       fetchOrders();
     }, 300);
     return () => clearTimeout(handle);
-  }, [searchInput, dateInput]);
+  }, [filter, fetchOrders]);
 
   useEffect(() => {
     setFormState((prev) => {
@@ -145,7 +159,7 @@ export default function AdminOrdersPage() {
           carrier: latest?.carrier ?? '',
           service: latest?.service ?? '',
           trackingNo: latest?.trackingNo ?? '',
-          trackingUrl: latest?.trackingUrl ?? ''
+          trackingUrl: latest?.trackingUrl ?? '',
         };
       });
       return next;
@@ -154,13 +168,13 @@ export default function AdminOrdersPage() {
 
   const totals = useMemo(
     () => orders.reduce((acc, order) => acc + toNumber(order.total), 0),
-    [orders]
+    [orders],
   );
 
   const updateField = (orderId: string, field: keyof ShipmentForm, value: string) => {
     setFormState((prev) => ({
       ...prev,
-      [orderId]: { ...prev[orderId], [field]: value }
+      [orderId]: { ...prev[orderId], [field]: value },
     }));
   };
 
@@ -168,7 +182,9 @@ export default function AdminOrdersPage() {
     const form = formState[orderId];
     if (!form) return;
     if (!isShipmentFormComplete(form)) {
-      setError('Fill out carrier, service, tracking number, and tracking URL before marking shipped.');
+      setError(
+        'Fill out carrier, service, tracking number, and tracking URL before marking shipped.',
+      );
       return;
     }
     try {
@@ -177,7 +193,7 @@ export default function AdminOrdersPage() {
         carrier: form.carrier || undefined,
         service: form.service || undefined,
         trackingNo: form.trackingNo || undefined,
-        trackingUrl: form.trackingUrl || undefined
+        trackingUrl: form.trackingUrl || undefined,
       });
       await fetchOrders();
     } catch (err) {

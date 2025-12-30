@@ -26,7 +26,11 @@ const formatProfileError = (message?: string | null) => {
   if (!message) {
     return 'Unable to save profile details. Please try again.';
   }
-  if (message.includes("schema cache") || message.includes('relation') || message.includes('profiles')) {
+  if (
+    message.includes('schema cache') ||
+    message.includes('relation') ||
+    message.includes('profiles')
+  ) {
     return 'Profile storage is not configured. Please run the profiles.sql script in Supabase and reload the schema cache.';
   }
   return message;
@@ -95,7 +99,7 @@ export default function SignupPage() {
     company: false,
     location: false,
     email: false,
-    password: false
+    password: false,
   });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -110,9 +114,9 @@ export default function SignupPage() {
         location,
         locationSelected,
         email,
-        password
+        password,
       }),
-    [firstName, lastName, company, location, locationSelected, email, password]
+    [firstName, lastName, company, location, locationSelected, email, password],
   );
 
   const shouldShowError = (field: keyof FieldErrors) =>
@@ -131,7 +135,7 @@ export default function SignupPage() {
       setLocationLoading(true);
       try {
         const response = await fetch(`/api/locations?q=${encodeURIComponent(query)}`, {
-          signal: controller.signal
+          signal: controller.signal,
         });
         if (!response.ok) {
           throw new Error('Location lookup failed');
@@ -140,11 +144,13 @@ export default function SignupPage() {
         if (!active) return;
         setLocationOptions(data);
       } catch {
-        if (!active) return;
-        setLocationOptions([]);
+        if (active) {
+          setLocationOptions([]);
+        }
       } finally {
-        if (!active) return;
-        setLocationLoading(false);
+        if (active) {
+          setLocationLoading(false);
+        }
       }
     };
     run();
@@ -166,7 +172,7 @@ export default function SignupPage() {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       company: company.trim(),
-      location: location.trim()
+      location: location.trim(),
     };
     const redirectTo =
       typeof window !== 'undefined'
@@ -181,9 +187,9 @@ export default function SignupPage() {
           first_name: trimmed.firstName,
           last_name: trimmed.lastName,
           company: trimmed.company,
-          location: trimmed.location
-        }
-      }
+          location: trimmed.location,
+        },
+      },
     });
     if (signUpError) {
       setLoading(false);
@@ -204,8 +210,8 @@ export default function SignupPage() {
         firstName: trimmed.firstName,
         lastName: trimmed.lastName,
         company: trimmed.company,
-        location: trimmed.location
-      })
+        location: trimmed.location,
+      }),
     });
     if (!profileResponse.ok) {
       let message: string | undefined;
@@ -226,65 +232,63 @@ export default function SignupPage() {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-          <div className={styles.header}>
-            <h1 className={styles.title}>Sign up</h1>
-            <p className={styles.subtitle}>Create your ASii Medical account</p>
-          </div>
-          {success ? (
-            <div className={styles.success}>
-              Check your email to confirm your account.
-            </div>
-          ) : (
-            <form onSubmit={onSubmit} className={styles.form}>
-              <label className={styles.label}>
-                First name
+        <div className={styles.header}>
+          <h1 className={styles.title}>Sign up</h1>
+          <p className={styles.subtitle}>Create your ASii Medical account</p>
+        </div>
+        {success ? (
+          <div className={styles.success}>Check your email to confirm your account.</div>
+        ) : (
+          <form onSubmit={onSubmit} className={styles.form}>
+            <label className={styles.label}>
+              First name
+              <input
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={(event) => setFirstName(event.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, firstName: true }))}
+                required
+                className={styles.input}
+              />
+              {shouldShowError('firstName') ? (
+                <span className={styles.fieldError}>{fieldErrors.firstName}</span>
+              ) : null}
+            </label>
+            <label className={styles.label}>
+              Last name
+              <input
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={(event) => setLastName(event.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, lastName: true }))}
+                required
+                className={`${styles.input} ${styles.locationInput}`}
+              />
+              {shouldShowError('lastName') ? (
+                <span className={styles.fieldError}>{fieldErrors.lastName}</span>
+              ) : null}
+            </label>
+            <label className={styles.label}>
+              Company
+              <input
+                type="text"
+                placeholder="Company"
+                value={company}
+                onChange={(event) => setCompany(event.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, company: true }))}
+                required
+                className={styles.input}
+              />
+              {shouldShowError('company') ? (
+                <span className={styles.fieldError}>{fieldErrors.company}</span>
+              ) : null}
+            </label>
+            <label className={styles.label}>
+              Location
+              <div className={styles.locationWrap}>
                 <input
-                  type="text"
-                  placeholder="First name"
-                  value={firstName}
-                  onChange={(event) => setFirstName(event.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, firstName: true }))}
-                  required
-                  className={styles.input}
-                />
-                {shouldShowError('firstName') ? (
-                  <span className={styles.fieldError}>{fieldErrors.firstName}</span>
-                ) : null}
-              </label>
-              <label className={styles.label}>
-                Last name
-                <input
-                  type="text"
-                  placeholder="Last name"
-                  value={lastName}
-                  onChange={(event) => setLastName(event.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, lastName: true }))}
-                  required
-                  className={`${styles.input} ${styles.locationInput}`}
-                />
-                {shouldShowError('lastName') ? (
-                  <span className={styles.fieldError}>{fieldErrors.lastName}</span>
-                ) : null}
-              </label>
-              <label className={styles.label}>
-                Company
-                <input
-                  type="text"
-                  placeholder="Company"
-                  value={company}
-                  onChange={(event) => setCompany(event.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, company: true }))}
-                  required
-                  className={styles.input}
-                />
-                {shouldShowError('company') ? (
-                  <span className={styles.fieldError}>{fieldErrors.company}</span>
-                ) : null}
-              </label>
-              <label className={styles.label}>
-                Location
-                <div className={styles.locationWrap}>
-                  <input
                   type="text"
                   placeholder="Start typing your address"
                   value={location}
@@ -301,73 +305,75 @@ export default function SignupPage() {
                   required
                   className={styles.input}
                 />
-                  {isLocationOpen && location.trim().length >= 3 ? (
-                    <div className={styles.locationList} role="listbox">
-                      {locationOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          className={styles.locationOption}
-                          onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => {
-                            setLocation(option.label);
-                            setLocationSelected(true);
-                            setIsLocationOpen(false);
-                          }}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                      {!locationLoading && locationOptions.length === 0 ? (
-                        <div className={styles.locationEmpty}>No matches found.</div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-                {shouldShowError('location') ? (
-                  <span className={styles.fieldError}>{fieldErrors.location}</span>
+                {isLocationOpen && location.trim().length >= 3 ? (
+                  <div className={styles.locationList} role="listbox">
+                    {locationOptions.map((option) => (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={styles.locationOption}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          setLocation(option.label);
+                          setLocationSelected(true);
+                          setIsLocationOpen(false);
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                    {!locationLoading && locationOptions.length === 0 ? (
+                      <div className={styles.locationEmpty}>No matches found.</div>
+                    ) : null}
+                  </div>
                 ) : null}
-              </label>
-              <label className={styles.label}>
-                Email
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
-                  required
-                  className={styles.input}
-                />
-                {shouldShowError('email') ? (
-                  <span className={styles.fieldError}>{fieldErrors.email}</span>
-                ) : null}
-              </label>
-              <label className={styles.label}>
-                Password
-                <input
-                  type="password"
-                  placeholder="Create a password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
-                  required
-                  className={styles.input}
-                />
-                {shouldShowError('password') ? (
-                  <span className={styles.fieldError}>{fieldErrors.password}</span>
-                ) : null}
-              </label>
-              {error ? <div className={styles.error}>{error}</div> : null}
-              <button type="submit" disabled={loading} className={styles.submit}>
-                {loading ? 'Creating...' : 'Create account'}
-              </button>
-            </form>
-          )}
-          <div className={styles.footer}>
-            <span>Already have an account?</span>{' '}
-            <Link href="/login" className="text-link">Log in</Link>
-          </div>
+              </div>
+              {shouldShowError('location') ? (
+                <span className={styles.fieldError}>{fieldErrors.location}</span>
+              ) : null}
+            </label>
+            <label className={styles.label}>
+              Email
+              <input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
+                required
+                className={styles.input}
+              />
+              {shouldShowError('email') ? (
+                <span className={styles.fieldError}>{fieldErrors.email}</span>
+              ) : null}
+            </label>
+            <label className={styles.label}>
+              Password
+              <input
+                type="password"
+                placeholder="Create a password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
+                required
+                className={styles.input}
+              />
+              {shouldShowError('password') ? (
+                <span className={styles.fieldError}>{fieldErrors.password}</span>
+              ) : null}
+            </label>
+            {error ? <div className={styles.error}>{error}</div> : null}
+            <button type="submit" disabled={loading} className={styles.submit}>
+              {loading ? 'Creating...' : 'Create account'}
+            </button>
+          </form>
+        )}
+        <div className={styles.footer}>
+          <span>Already have an account?</span>{' '}
+          <Link href="/login" className="text-link">
+            Log in
+          </Link>
+        </div>
       </div>
     </div>
   );

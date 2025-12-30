@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './header.module.css';
 import {
@@ -8,7 +8,7 @@ import {
   clearCartItems,
   dispatchCartUpdate,
   getCartTotals,
-  readCartItems
+  readCartItems,
 } from '../lib/cart';
 import { createBrowserSupabaseClient } from '../lib/supabase/browser';
 import { fetchCart, mergeGuestCart } from '../lib/cart-api';
@@ -22,12 +22,22 @@ export default function CartPopover() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const lastFetchRef = useRef(0);
+  const isLoggedInRef = useRef(isLoggedIn);
+  const hasLoadedRef = useRef(hasLoaded);
 
-  const refresh = async (force = false) => {
-    if (isLoggedIn) {
+  useEffect(() => {
+    isLoggedInRef.current = isLoggedIn;
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    hasLoadedRef.current = hasLoaded;
+  }, [hasLoaded]);
+
+  const refresh = useCallback(async (force = false) => {
+    if (isLoggedInRef.current) {
       try {
         const now = Date.now();
-        if (!force && hasLoaded && now - lastFetchRef.current < 60 * 60 * 1000) {
+        if (!force && hasLoadedRef.current && now - lastFetchRef.current < 60 * 60 * 1000) {
           return;
         }
         const response = await fetchCart();
@@ -38,11 +48,13 @@ export default function CartPopover() {
         setItems([]);
       } finally {
         setHasLoaded(true);
+        hasLoadedRef.current = true;
       }
     }
     setItems(readCartItems());
     setHasLoaded(true);
-  };
+    hasLoadedRef.current = true;
+  }, []);
 
   useEffect(() => {
     const supabase = createBrowserSupabaseClient();
@@ -63,7 +75,7 @@ export default function CartPopover() {
       refresh(true);
     });
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [refresh]);
 
   useEffect(() => {
     refresh(true);
@@ -80,7 +92,7 @@ export default function CartPopover() {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('cart:updated', handleUpdate);
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, refresh]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -140,12 +152,7 @@ export default function CartPopover() {
         aria-label="Cart"
         data-testid="cart-button"
       >
-        <svg
-          viewBox="0 0 24 24"
-          className={styles.cartIcon}
-          aria-hidden="true"
-          focusable="false"
-        >
+        <svg viewBox="0 0 24 24" className={styles.cartIcon} aria-hidden="true" focusable="false">
           <path
             d="M3 5h2l2.4 9.6a2 2 0 0 0 2 1.4h7.7a2 2 0 0 0 2-1.5l1.4-6.5H7.1"
             fill="none"
@@ -175,8 +182,7 @@ export default function CartPopover() {
           ) : (
             <div className={styles.cartList}>
               {items.map((item) => {
-                const label =
-                  item.productName || item.itemDescription || `Item ${item.itemId}`;
+                const label = item.productName || item.itemDescription || `Item ${item.itemId}`;
                 const lineTotal =
                   item.unitPrice !== null && item.unitPrice !== undefined
                     ? item.unitPrice * item.quantity
@@ -198,9 +204,7 @@ export default function CartPopover() {
           <div className={styles.cartFooter}>
             <div className={styles.cartSubtotal}>
               <span>Subtotal</span>
-              <span>
-                {totals.subtotal > 0 ? `$${totals.subtotal.toFixed(2)}` : '—'}
-              </span>
+              <span>{totals.subtotal > 0 ? `$${totals.subtotal.toFixed(2)}` : '—'}</span>
             </div>
             <div className={styles.cartActions}>
               <button type="button" className={styles.cartViewButton} onClick={onViewCart}>

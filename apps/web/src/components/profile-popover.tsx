@@ -37,7 +37,7 @@ export default function ProfilePopover() {
       }
       return data;
     },
-    [supabase]
+    [supabase],
   );
 
   useEffect(() => {

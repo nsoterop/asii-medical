@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-  UnauthorizedException
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthenticatedRequest } from './supabase-auth.guard';

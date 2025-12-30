@@ -41,14 +41,14 @@ if (!testDbUrl) {
           status: 'RUNNING',
           originalFilename: 'stuck.csv',
           storedPath: '/tmp/stuck.csv',
-          startedAt
-        }
+          startedAt,
+        },
       });
 
       await reconciler.onModuleInit();
 
       const updated = await prisma.importRun.findUnique({
-        where: { id: run.id }
+        where: { id: run.id },
       });
 
       expect(updated?.status).toBe('FAILED');

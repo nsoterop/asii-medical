@@ -2,7 +2,12 @@
   display: grid;
   grid-template-columns: 240px 1fr;
   gap: 24px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   color: #1f1f1f;
 }
 
@@ -35,7 +40,7 @@
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: #414F64;
+  color: #414f64;
   font-size: 20px;
   line-height: 1;
   width: 28px;
@@ -48,7 +53,7 @@
 
 .searchButton {
   padding: 10px 16px;
-  background: #414F64;
+  background: #414f64;
   color: #fff;
   border-radius: 8px;
   border: none;
@@ -250,7 +255,6 @@
   align-items: center;
 }
 
-
 .viewMoreButton {
   margin-top: 10px;
   border: 1px solid #ddd;
@@ -299,7 +303,6 @@
   font-size: 14px;
 }
 
-
 .pagination {
   display: flex;
   gap: 8px;
@@ -324,8 +327,8 @@
 }
 
 .pageButtonActive {
-  border-color: #414F64;
-  color: #414F64;
+  border-color: #414f64;
+  color: #414f64;
   background: #f1f4f8;
   cursor: default;
 }

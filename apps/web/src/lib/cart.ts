@@ -50,7 +50,7 @@ export const addCartItem = (item: CartItem) => {
     current[index] = {
       ...existing,
       ...item,
-      quantity: existing.quantity + normalizedQuantity
+      quantity: existing.quantity + normalizedQuantity,
     };
   } else {
     current.push({ ...item, quantity: normalizedQuantity });

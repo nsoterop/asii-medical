@@ -2,7 +2,12 @@
   max-width: 960px;
   margin: 32px auto;
   padding: 0 16px 40px;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   color: #1f1f1f;
 }
 
@@ -83,8 +88,8 @@
 }
 
 .admin-button {
-  border: 1px solid #414F64;
-  background: #414F64;
+  border: 1px solid #414f64;
+  background: #414f64;
   color: #fff;
   border-radius: 6px;
   padding: 6px 12px;
@@ -98,7 +103,7 @@
 
 .admin-button.secondary {
   background: #fff;
-  color: #414F64;
+  color: #414f64;
 }
 
 .admin-button.secondary:hover {
@@ -150,9 +155,9 @@
 }
 
 .admin-button.secondary.active {
-  background: #414F64;
+  background: #414f64;
   color: #fff;
-  border-color: #414F64;
+  border-color: #414f64;
 }
 
 .admin-button.danger {

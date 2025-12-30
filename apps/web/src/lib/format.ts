@@ -3,6 +3,6 @@ export const formatCurrency = (value: number | null | undefined) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   }).format(value);
 };

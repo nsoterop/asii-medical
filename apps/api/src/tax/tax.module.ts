@@ -3,6 +3,6 @@ import { TaxService } from './tax.service';
 
 @Module({
   providers: [TaxService],
-  exports: [TaxService]
+  exports: [TaxService],
 })
 export class TaxModule {}

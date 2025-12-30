@@ -26,7 +26,7 @@ export class CategoryTreeService {
     }
 
     const categories = await this.prisma.category.findMany({
-      orderBy: [{ depth: 'asc' }, { name: 'asc' }]
+      orderBy: [{ depth: 'asc' }, { name: 'asc' }],
     });
 
     const nodeMap = new Map<string, CategoryNode>();
@@ -35,7 +35,7 @@ export class CategoryTreeService {
         name: category.name,
         path: category.path,
         depth: category.depth,
-        children: []
+        children: [],
       });
     });
 
@@ -63,7 +63,7 @@ export class CategoryTreeService {
 
     this.cache = {
       expiresAt: Date.now() + CACHE_TTL_MS,
-      tree: roots
+      tree: roots,
     };
 
     return roots;

@@ -32,14 +32,14 @@ export const addCartItemAuthed = async (item: CartItem) => {
       availabilityRaw: item.availabilityRaw ?? null,
       pkg: item.pkg ?? null,
       ndcItemCode: item.ndcItemCode ?? null,
-      imageUrl: item.imageUrl ?? null
-    }
+      imageUrl: item.imageUrl ?? null,
+    },
   };
 
   const response = await fetch('/api/cart/items', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
 
   if (!response.ok) {
@@ -51,7 +51,7 @@ export const updateCartItemQtyAuthed = async (itemId: number, qty: number) => {
   const response = await fetch(`/api/cart/items/${itemId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ qty })
+    body: JSON.stringify({ qty }),
   });
 
   if (!response.ok) {
@@ -61,7 +61,7 @@ export const updateCartItemQtyAuthed = async (itemId: number, qty: number) => {
 
 export const removeCartItemAuthed = async (itemId: number) => {
   const response = await fetch(`/api/cart/items/${itemId}`, {
-    method: 'DELETE'
+    method: 'DELETE',
   });
 
   if (!response.ok) {
@@ -85,15 +85,15 @@ export const mergeGuestCart = async (items: CartItem[]) => {
         availabilityRaw: item.availabilityRaw ?? null,
         pkg: item.pkg ?? null,
         ndcItemCode: item.ndcItemCode ?? null,
-        imageUrl: item.imageUrl ?? null
-      }
-    }))
+        imageUrl: item.imageUrl ?? null,
+      },
+    })),
   };
 
   const response = await fetch('/api/cart/merge', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

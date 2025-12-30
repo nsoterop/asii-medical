@@ -42,7 +42,7 @@ export function parseFilters(raw: {
     categoryPathName,
     availabilityRaw,
     minPrice: Number.isFinite(minPrice as number) ? (minPrice as number) : undefined,
-    maxPrice: Number.isFinite(maxPrice as number) ? (maxPrice as number) : undefined
+    maxPrice: Number.isFinite(maxPrice as number) ? (maxPrice as number) : undefined,
   };
 }
 
@@ -50,7 +50,7 @@ export function parseFilters(raw: {
 export class CatalogController {
   constructor(
     private readonly catalogService: CatalogService,
-    private readonly categoryTreeService: CategoryTreeService
+    private readonly categoryTreeService: CategoryTreeService,
   ) {}
 
   @Get('search')
@@ -58,11 +58,11 @@ export class CatalogController {
     @Query('q') q = '',
     @Query('page') page = '1',
     @Query('pageSize') pageSize = '20',
-    @Query() query: Record<string, string | string[]>
+    @Query() query: Record<string, string | string[]>,
   ) {
     const pageNumber = Math.max(1, Number(page) || 1);
     const size = Math.min(100, Math.max(1, Number(pageSize) || 20));
-    const filters = parseFilters(query as any);
+    const filters = parseFilters(query as Parameters<typeof parseFilters>[0]);
 
     return this.catalogService.searchSkus(q, pageNumber, size, filters);
   }

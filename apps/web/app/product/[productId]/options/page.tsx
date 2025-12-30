@@ -43,15 +43,27 @@ export default function ProductOptionsPage() {
   };
 
   if (loading) {
-    return <div className={styles.wrapper}><p className={styles.loading}>Loading...</p></div>;
+    return (
+      <div className={styles.wrapper}>
+        <p className={styles.loading}>Loading...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className={styles.wrapper}><p className={styles.loading}>{error}</p></div>;
+    return (
+      <div className={styles.wrapper}>
+        <p className={styles.loading}>{error}</p>
+      </div>
+    );
   }
 
   if (!product) {
-    return <div className={styles.wrapper}><p className={styles.loading}>No product.</p></div>;
+    return (
+      <div className={styles.wrapper}>
+        <p className={styles.loading}>No product.</p>
+      </div>
+    );
   }
 
   return (

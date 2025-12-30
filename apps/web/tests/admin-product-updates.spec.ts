@@ -1,14 +1,20 @@
 import { test, expect } from '@playwright/test';
+import type { Cookie } from '@playwright/test';
 
-const rawCookies = process.env.E2E_ADMIN_COOKIES;
-let adminCookies: Array<Record<string, any>> = [];
-if (rawCookies) {
+const parseCookies = (raw?: string): Cookie[] => {
+  if (!raw) return [];
   try {
-    adminCookies = JSON.parse(rawCookies) as Array<Record<string, any>>;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((cookie): cookie is Cookie =>
+      Boolean(cookie && typeof cookie.name === 'string' && typeof cookie.value === 'string'),
+    );
   } catch {
-    adminCookies = [];
+    return [];
   }
-}
+};
+
+const adminCookies = parseCookies(process.env.E2E_ADMIN_COOKIES);
 
 test.describe('admin product updates', () => {
   test.skip(adminCookies.length === 0, 'E2E_ADMIN_COOKIES not set.');
@@ -20,51 +26,50 @@ test.describe('admin product updates', () => {
   });
 
   test('admin product updates search and save', async ({ page }) => {
+    await page.route('**/api/admin/products/by-item/123', async (route) => {
+      const request = route.request();
+      if (request.method() === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            itemId: 123,
+            skuId: 123,
+            productId: 456,
+            productName: 'Test Product',
+            itemName: 'Test Item',
+            manufacturerName: 'Acme',
+            ndcItemCode: 'NDC123',
+            categoryPathName: 'Supplies',
+            imageUrl: 'https://example.com/old.png',
+            price: 12.5,
+            currency: 'USD',
+          }),
+        });
+        return;
+      }
 
-  await page.route('**/api/admin/products/by-item/123', async (route) => {
-    const request = route.request();
-    if (request.method() === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          itemId: 123,
-          skuId: 123,
-          productId: 456,
-          productName: 'Test Product',
-          itemName: 'Test Item',
-          manufacturerName: 'Acme',
-          ndcItemCode: 'NDC123',
-          categoryPathName: 'Supplies',
-          imageUrl: 'https://example.com/old.png',
-          price: 12.5,
-          currency: 'USD'
-        })
-      });
-      return;
-    }
-
-    if (request.method() === 'PATCH') {
-      const payload = request.postDataJSON() as { price: number; imageUrl: string | null };
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          itemId: 123,
-          skuId: 123,
-          productId: 456,
-          productName: 'Test Product',
-          itemName: 'Test Item',
-          manufacturerName: 'Acme',
-          ndcItemCode: 'NDC123',
-          categoryPathName: 'Supplies',
-          imageUrl: payload.imageUrl,
-          price: payload.price,
-          currency: 'USD'
-        })
-      });
-    }
-  });
+      if (request.method() === 'PATCH') {
+        const payload = request.postDataJSON() as { price: number; imageUrl: string | null };
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            itemId: 123,
+            skuId: 123,
+            productId: 456,
+            productName: 'Test Product',
+            itemName: 'Test Item',
+            manufacturerName: 'Acme',
+            ndcItemCode: 'NDC123',
+            categoryPathName: 'Supplies',
+            imageUrl: payload.imageUrl,
+            price: payload.price,
+            currency: 'USD',
+          }),
+        });
+      }
+    });
 
     await page.goto('/admin/products');
 
@@ -85,10 +90,9 @@ test.describe('admin product updates', () => {
 
     const [request] = await Promise.all([
       page.waitForRequest(
-        (req) =>
-          req.url().includes('/api/admin/products/by-item/123') && req.method() === 'PATCH'
+        (req) => req.url().includes('/api/admin/products/by-item/123') && req.method() === 'PATCH',
       ),
-      saveButton.click()
+      saveButton.click(),
     ]);
 
     const payload = request.postDataJSON() as { price: number; imageUrl: string | null };

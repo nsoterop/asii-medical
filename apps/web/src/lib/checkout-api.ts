@@ -50,7 +50,7 @@ export const createCheckoutOrder = async (params: {
   const response = await authedFetch('/api/checkout/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params)
+    body: JSON.stringify(params),
   });
 
   if (!response.ok) {
@@ -69,7 +69,7 @@ export const payCheckoutOrder = async (params: {
   const response = await authedFetch('/api/checkout/pay', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params)
+    body: JSON.stringify(params),
   });
 
   if (!response.ok) {
@@ -81,7 +81,7 @@ export const payCheckoutOrder = async (params: {
 
 export const fetchCheckoutStatus = async (orderId: string): Promise<CheckoutStatusResponse> => {
   const response = await authedFetch(`/api/checkout/${orderId}/status`, {
-    cache: 'no-store'
+    cache: 'no-store',
   });
 
   if (!response.ok) {

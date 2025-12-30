@@ -42,7 +42,7 @@
 
 .primaryButton {
   border-radius: 999px;
-  background: #414F64;
+  background: #414f64;
   color: #fff;
   padding: 12px 24px;
   font-size: 14px;
@@ -61,7 +61,7 @@
 .secondaryButton {
   border-radius: 999px;
   border: 1px solid #d6d6d6;
-  color: #414F64;
+  color: #414f64;
   padding: 12px 24px;
   font-size: 14px;
   font-weight: 600;

@@ -30,7 +30,7 @@ export class AdminProductsService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly searchService: SearchService
+    private readonly searchService: SearchService,
   ) {}
 
   async getByItemId(itemId: number) {
@@ -40,10 +40,10 @@ export class AdminProductsService {
         product: {
           include: {
             manufacturer: true,
-            primaryCategoryPath: true
-          }
-        }
-      }
+            primaryCategoryPath: true,
+          },
+        },
+      },
     });
 
     if (!sku) {
@@ -53,10 +53,7 @@ export class AdminProductsService {
     return this.mapSkuToDto(sku);
   }
 
-  async updateByItemId(
-    itemId: number,
-    updates: { price?: number; imageUrl?: string | null }
-  ) {
+  async updateByItemId(itemId: number, updates: { price?: number; imageUrl?: string | null }) {
     const data: Prisma.SkuUpdateInput = {};
     if (updates.price !== undefined) {
       data.unitPrice = new Prisma.Decimal(updates.price);
@@ -74,16 +71,13 @@ export class AdminProductsService {
           product: {
             include: {
               manufacturer: true,
-              primaryCategoryPath: true
-            }
-          }
-        }
+              primaryCategoryPath: true,
+            },
+          },
+        },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2025'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
         throw new NotFoundException('Item not found.');
       }
       throw error;
@@ -100,15 +94,13 @@ export class AdminProductsService {
       productId: sku.productId,
       productName: sku.product.productName,
       itemName:
-        sku.itemDescription?.trim() ||
-        sku.manufacturerItemCode?.trim() ||
-        `Item ${sku.itemId}`,
+        sku.itemDescription?.trim() || sku.manufacturerItemCode?.trim() || `Item ${sku.itemId}`,
       manufacturerName: sku.product.manufacturer?.name ?? null,
       ndcItemCode: sku.ndcItemCode ?? null,
       categoryPathName: sku.product.primaryCategoryPath?.categoryPathName ?? null,
       imageUrl: sku.itemImageUrl ?? null,
       price: sku.unitPrice ? Number(sku.unitPrice.toString()) : null,
-      currency: 'USD'
+      currency: 'USD',
     };
   }
 
@@ -128,7 +120,7 @@ export class AdminProductsService {
       availabilityRaw: sku.availabilityRaw ?? null,
       pkg: sku.pkg ?? null,
       imageUrl: sku.itemImageUrl ?? null,
-      isActive: sku.isActive
+      isActive: sku.isActive,
     };
   }
 

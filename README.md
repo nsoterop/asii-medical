@@ -57,6 +57,29 @@ pnpm --filter api db:migrate
 pnpm --filter api db:generate
 ```
 
+### Local Supabase (CLI)
+Install the Supabase CLI, then from the repo root:
+```bash
+supabase init # one-time if supabase/config.toml is missing
+pnpm supabase:start
+pnpm supabase:status
+```
+
+Update local env files with the values from `supabase status`:
+- `apps/api/.env.docker` (DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+- `apps/web/.env.docker` (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+Apply SQL in `supabase/` to your local Supabase database (if needed):
+```bash
+psql "$DATABASE_URL" -f supabase/profiles.sql
+```
+
+Then apply Prisma migrations + seed:
+```bash
+pnpm --filter @asii/api db:migrate:dev
+pnpm --filter @asii/api db:seed
+```
+
 ### Data migration (old DB -> Supabase)
 Stop API/worker to avoid writes during migration. Then:
 ```bash

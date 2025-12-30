@@ -9,7 +9,7 @@ import {
   Query,
   UploadedFile,
   UseGuards,
-  UseInterceptors
+  UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -27,7 +27,7 @@ import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 export class AdminImportsController {
   constructor(
     private readonly importService: ImportService,
-    @Inject(IMPORTS_QUEUE) private readonly importsQueue: Queue
+    @Inject(IMPORTS_QUEUE) private readonly importsQueue: Queue,
   ) {}
 
   @Get()
@@ -44,7 +44,7 @@ export class AdminImportsController {
   async listErrors(
     @Param('id') id: string,
     @Query('page') page = '1',
-    @Query('pageSize') pageSize = '25'
+    @Query('pageSize') pageSize = '25',
   ) {
     const pageNumber = Math.max(1, Number(page) || 1);
     const size = Math.min(100, Math.max(1, Number(pageSize) || 25));
@@ -60,12 +60,12 @@ export class AdminImportsController {
   @Post()
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: memoryStorage()
-    })
+      storage: memoryStorage(),
+    }),
   )
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body('priceMarginPercent') priceMarginPercent?: string
+    @Body('priceMarginPercent') priceMarginPercent?: string,
   ) {
     if (!file) {
       throw new BadRequestException('file is required');
@@ -82,13 +82,13 @@ export class AdminImportsController {
     const importRun = await this.importService.createImportRunWithId(
       importRunId,
       file.originalname,
-      storedPath
+      storedPath,
     );
 
     await this.importsQueue.add('import-csv', {
       importRunId: importRun.id,
       filePath: storedPath,
-      priceMarginPercent: marginPercent
+      priceMarginPercent: marginPercent,
     });
 
     return importRun;

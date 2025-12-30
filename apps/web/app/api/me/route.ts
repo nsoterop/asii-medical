@@ -12,15 +12,11 @@ export async function GET() {
     return NextResponse.json({ isAdmin: false, userId: null, email: null });
   }
 
-  const { data } = await supabase
-    .from('profiles')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
+  const { data } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single();
 
   return NextResponse.json({
     isAdmin: Boolean(data?.is_admin),
     userId: user.id,
-    email: user.email ?? null
+    email: user.email ?? null,
   });
 }

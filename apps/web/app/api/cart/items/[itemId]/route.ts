@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getAdminClient, getAuthedUser, getOrCreateActiveCart } from '../../cart-helpers';
 
 const patchSchema = z.object({
-  qty: z.number().int().min(0).max(999)
+  qty: z.number().int().min(0).max(999),
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: { itemId: string } }) {
