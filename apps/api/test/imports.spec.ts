@@ -52,7 +52,7 @@ describeIfDb('Import pipeline', () => {
     await context.prisma.$disconnect();
   });
 
-  it('imports fixture data and deactivates missing SKUs on re-import', async () => {
+  it('imports fixture data and removes missing SKUs on re-import', async () => {
     const run1CsvPath = path.join(os.tmpdir(), `sample-${Date.now()}.csv`);
     await copyFile(fixturePath, run1CsvPath);
     const run1 = await context.prisma.importRun.create({
@@ -146,20 +146,40 @@ describeIfDb('Import pipeline', () => {
     const sku2 = await context.prisma.sku.findUnique({
       where: { itemId: 1002 }
     });
-    expect(sku2?.isActive).toBe(false);
-    expect(sku2?.lastSeenImportRunId).toBe(run1.id);
+    expect(sku2).toBeNull();
     const sku3 = await context.prisma.sku.findUnique({
       where: { itemId: 1003 }
     });
-    expect(sku3?.isActive).toBe(false);
-    expect(sku3?.lastSeenImportRunId).toBe(run1.id);
+    expect(sku3).toBeNull();
 
     const sku1 = await context.prisma.sku.findUnique({
       where: { itemId: 1001 }
     });
     expect(sku1?.lastSeenImportRunId).toBe(run2.id);
 
+    expect(await context.prisma.product.count()).toBe(1);
+
     await unlink(secondCsvPath).catch(() => undefined);
+  });
+
+  it('applies price margin percent during import', async () => {
+    const marginCsvPath = path.join(os.tmpdir(), `sample-${Date.now()}-margin.csv`);
+    await copyFile(fixturePath, marginCsvPath);
+    const run = await context.prisma.importRun.create({
+      data: {
+        status: 'QUEUED',
+        originalFilename: 'sample.csv',
+        storedPath: marginCsvPath
+      }
+    });
+
+    await context.importWorker.handleImportJob(run.id, marginCsvPath, 10);
+
+    const sku = await context.prisma.sku.findUnique({
+      where: { itemId: 1001 }
+    });
+
+    expect(sku?.unitPrice?.toString()).toBe('13.57');
   });
 
   it('marks import as FAILED when processing throws', async () => {

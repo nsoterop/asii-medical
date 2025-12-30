@@ -1,12 +1,13 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { AdminSecretGuard } from '../auth/admin-secret.guard';
+import { AdminGuard } from '../auth/admin.guard';
+import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { SearchService } from './search.service';
 import { SearchStatusService } from './search-status.service';
 import { SKUS_INDEX_NAME } from './search.constants';
 import { IndexSkusJob } from './index-skus.job';
 
 @Controller('admin/search')
-@UseGuards(AdminSecretGuard)
+@UseGuards(SupabaseAuthGuard, AdminGuard)
 export class AdminSearchController {
   constructor(
     private readonly searchService: SearchService,

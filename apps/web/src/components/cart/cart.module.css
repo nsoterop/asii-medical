@@ -132,8 +132,28 @@
   padding: 10px 14px;
   height: 44px;
   font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.summaryButton:hover {
+  background: #55657d;
+  border-color: #55657d;
+}
+
+.summaryButton:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.summaryButton:disabled:hover {
+  background: #414F64;
+  border-color: #414F64;
 }
 
 .summaryLink {
@@ -141,7 +161,7 @@
   text-align: center;
   margin-top: 12px;
   font-size: 13px;
-  color: #1a5fd0;
+  color: #121212;
   text-decoration: none;
 }
 

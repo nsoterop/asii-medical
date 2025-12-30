@@ -81,3 +81,8 @@
   color: #fff;
   text-decoration: none;
 }
+
+.emptyButton:hover {
+  background: #55657d;
+  border-color: #55657d;
+}

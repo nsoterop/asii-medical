@@ -1,7 +1,9 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
+  Inject,
   Param,
   Post,
   Query,
@@ -17,11 +19,11 @@ import path from 'path';
 import { Queue } from 'bullmq';
 import { ImportService } from './import.service';
 import { IMPORTS_QUEUE } from './imports.constants';
-import { Inject } from '@nestjs/common';
-import { AdminSecretGuard } from '../auth/admin-secret.guard';
+import { AdminGuard } from '../auth/admin.guard';
+import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 
 @Controller('admin/imports')
-@UseGuards(AdminSecretGuard)
+@UseGuards(SupabaseAuthGuard, AdminGuard)
 export class AdminImportsController {
   constructor(
     private readonly importService: ImportService,
@@ -61,11 +63,15 @@ export class AdminImportsController {
       storage: memoryStorage()
     })
   )
-  async upload(@UploadedFile() file: Express.Multer.File) {
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('priceMarginPercent') priceMarginPercent?: string
+  ) {
     if (!file) {
       throw new BadRequestException('file is required');
     }
 
+    const marginPercent = this.parseMarginPercent(priceMarginPercent);
     const importRunId = randomUUID();
     const uploadsDir = path.resolve(process.cwd(), 'uploads');
     const storedPath = path.join(uploadsDir, `${importRunId}.csv`);
@@ -81,9 +87,24 @@ export class AdminImportsController {
 
     await this.importsQueue.add('import-csv', {
       importRunId: importRun.id,
-      filePath: storedPath
+      filePath: storedPath,
+      priceMarginPercent: marginPercent
     });
 
     return importRun;
+  }
+
+  private parseMarginPercent(value?: string) {
+    if (!value || value.trim() === '') {
+      return 0;
+    }
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) {
+      throw new BadRequestException('priceMarginPercent must be a number');
+    }
+    if (numeric < 0 || numeric > 1000) {
+      throw new BadRequestException('priceMarginPercent must be between 0 and 1000');
+    }
+    return numeric;
   }
 }

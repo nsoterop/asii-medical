@@ -55,6 +55,10 @@
   cursor: pointer;
 }
 
+.searchButton:hover {
+  background: #55657d;
+}
+
 .sidebar {
   border: 1px solid #e5e5e5;
   border-radius: 12px;
@@ -92,7 +96,7 @@
 .clearButton {
   border: none;
   background: transparent;
-  color: #1a5fd0;
+  color: #121212;
   font-size: 12px;
   cursor: pointer;
   padding: 0;
@@ -230,7 +234,7 @@
 
 .categoryTreeSelected {
   font-weight: 600;
-  color: #1a5fd0;
+  color: #121212;
 }
 
 .categoryHighlight {
@@ -255,6 +259,10 @@
   padding: 6px 10px;
   font-size: 13px;
   cursor: pointer;
+}
+
+.viewMoreButton:hover {
+  background: #f7f7f7;
 }
 
 .results {
@@ -309,6 +317,10 @@
   background: #fff;
   border-radius: 6px;
   padding: 6px 10px;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: #f7f7f7;
 }
 
 .pageButtonActive {

@@ -1,10 +1,12 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["public"]
 }
 
 enum ImportRunStatus {
@@ -12,30 +14,63 @@ enum ImportRunStatus {
   RUNNING
   FAILED
   SUCCEEDED
+
+  @@schema("public")
 }
 
 enum UserStatus {
   PENDING_REVIEW
   ACTIVE
   SUSPENDED
+
+  @@schema("public")
 }
 
 enum CartStatus {
   ACTIVE
   SUBMITTED
   ABANDONED
+
+  @@schema("public")
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  FULFILLING
+  SHIPPED
+  DELIVERED
+  CANCELED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  FAILED
+
+  @@schema("public")
+}
+
+enum ShipmentStatus {
+  PENDING
+  SHIPPED
+  DELIVERED
+  CANCELED
+
+  @@schema("public")
 }
 
 model Manufacturer {
   manufacturerId Int       @id
   name           String
   products       Product[]
+
+  @@schema("public")
 }
 
 model CategoryPath {
   categoryPathId   String    @id
   categoryPathName String
   products         Product[]
+
+  @@schema("public")
 }
 
 model Category {
@@ -49,6 +84,7 @@ model Category {
 
   @@index([parentPath])
   @@index([depth])
+  @@schema("public")
 }
 
 model Product {
@@ -63,6 +99,7 @@ model Product {
 
   @@index([manufacturerId])
   @@index([primaryCategoryPathId])
+  @@schema("public")
 }
 
 model Sku {
@@ -97,6 +134,7 @@ model Sku {
   @@index([productId])
   @@index([lastSeenImportRunId])
   @@index([isActive])
+  @@schema("public")
 }
 
 model ImportRun {
@@ -114,6 +152,8 @@ model ImportRun {
   deactivated      Int              @default(0)
   errorCount       Int              @default(0)
   rowErrors        ImportRowError[]
+
+  @@schema("public")
 }
 
 model ImportRowError {
@@ -124,6 +164,8 @@ model ImportRowError {
   message     String
   createdAt   DateTime  @default(now())
   importRun   ImportRun @relation(fields: [importRunId], references: [id])
+
+  @@schema("public")
 }
 
 model User {
@@ -133,6 +175,21 @@ model User {
   status         UserStatus @default(PENDING_REVIEW)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
+
+  @@schema("public")
+}
+
+model Profile {
+  id        String   @id @db.Uuid
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  company   String
+  location  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("profiles")
+  @@schema("public")
 }
 
 model Cart {
@@ -146,6 +203,7 @@ model Cart {
   @@index([userId])
   @@index([status])
   @@map("carts")
+  @@schema("public")
 }
 
 model CartItem {
@@ -164,4 +222,79 @@ model CartItem {
   @@unique([cartId, productId, variantId])
   @@index([cartId])
   @@map("cart_items")
+  @@schema("public")
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  cartId          String
+  squareOrderId   String      @unique
+  squarePaymentId String?     @unique
+  status          OrderStatus @default(PENDING_PAYMENT)
+  currency        String      @default("USD")
+  subtotal        Decimal     @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+  shipments       Shipment[]
+  statusEvents    OrderStatusEvent[]
+
+  @@index([userId])
+  @@index([cartId])
+  @@schema("public")
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  variantId   String?
+  name        String
+  description String?
+  qty         Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  currency    String   @default("USD")
+  meta        Json?
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("public")
+}
+
+model Shipment {
+  id          String         @id @default(cuid())
+  orderId     String
+  carrier     String?
+  service     String?
+  trackingNo  String?
+  trackingUrl String?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  status      ShipmentStatus @default(PENDING)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status])
+  @@schema("public")
+}
+
+model OrderStatusEvent {
+  id        String      @id @default(cuid())
+  orderId   String
+  from      OrderStatus?
+  to        OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+
+  order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@schema("public")
 }

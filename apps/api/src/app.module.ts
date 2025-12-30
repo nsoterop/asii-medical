@@ -6,6 +6,11 @@ import { SearchModule } from './search/search.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { AdminSearchModule } from './search/admin-search.module';
 import { AuthModule } from './auth/auth.module';
+import { SquareModule } from './square/square.module';
+import { CheckoutModule } from './checkout/checkout.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { OrdersModule } from './orders/orders.module';
+import { AdminProductsModule } from './products/admin-products.module';
 
 @Module({
   imports: [
@@ -14,7 +19,12 @@ import { AuthModule } from './auth/auth.module';
     CatalogModule,
     AdminSearchModule,
     AdminImportsModule,
-    AuthModule
+    AuthModule,
+    SquareModule,
+    CheckoutModule,
+    NotificationsModule,
+    OrdersModule,
+    AdminProductsModule
   ],
   controllers: [HealthController]
 })

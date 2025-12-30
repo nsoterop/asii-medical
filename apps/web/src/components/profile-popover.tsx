@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './profile-popover.module.css';
@@ -21,6 +21,24 @@ export default function ProfilePopover() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  const closePopover = () => setIsOpen(false);
+
+  const fetchProfile = useCallback(
+    async (id: string) => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('first_name,last_name,company,location')
+        .eq('id', id)
+        .single();
+      if (error) {
+        return null;
+      }
+      return data;
+    },
+    [supabase]
+  );
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -39,27 +57,54 @@ export default function ProfilePopover() {
   useEffect(() => {
     if (!userId) {
       setProfile(null);
+      setIsAdmin(false);
       return;
     }
     let active = true;
-    const run = async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('first_name,last_name,company,location')
-        .eq('id', userId)
-        .single();
+    fetchProfile(userId).then((data) => {
       if (!active) return;
-      if (error) {
-        setProfile(null);
-        return;
-      }
       setProfile(data);
-    };
-    run();
+    });
     return () => {
       active = false;
     };
-  }, [supabase, userId]);
+  }, [fetchProfile, userId]);
+
+  const fetchAdminStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/me');
+      if (!response.ok) {
+        setIsAdmin(false);
+        return;
+      }
+      const data = (await response.json()) as { isAdmin?: boolean };
+      setIsAdmin(Boolean(data?.isAdmin));
+    } catch {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || !userId) {
+      return;
+    }
+    let active = true;
+    fetchProfile(userId).then((data) => {
+      if (!active) return;
+      setProfile(data);
+    });
+    fetchAdminStatus();
+    return () => {
+      active = false;
+    };
+  }, [fetchAdminStatus, fetchProfile, isOpen, userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+    fetchAdminStatus();
+  }, [fetchAdminStatus, userId]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -120,21 +165,38 @@ export default function ProfilePopover() {
           ) : (
             <div className={styles.profileEmail}>{userEmail}</div>
           )}
-          <button
-            type="button"
-            className={styles.logoutButton}
-            onClick={async () => {
-              await supabase.auth.signOut();
-              setIsOpen(false);
-              setUserEmail(null);
-              setUserId(null);
-              setProfile(null);
-              router.replace('/');
-              router.refresh();
-            }}
-          >
-            Logout
-          </button>
+          <div className={styles.profileActions}>
+            {isAdmin ? (
+              <Link
+                href="/admin/imports"
+                className={styles.profileActionButton}
+                onClick={closePopover}
+              >
+                Admin
+              </Link>
+            ) : null}
+            <Link href="/account" className={styles.profileActionButton} onClick={closePopover}>
+              Account details
+            </Link>
+            <Link href="/orders" className={styles.profileActionButton} onClick={closePopover}>
+              View orders
+            </Link>
+            <button
+              type="button"
+              className={styles.logoutButton}
+              onClick={async () => {
+                closePopover();
+                await supabase.auth.signOut();
+                setUserEmail(null);
+                setUserId(null);
+                setProfile(null);
+                router.replace('/');
+                router.refresh();
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </div>
       ) : null}
     </div>

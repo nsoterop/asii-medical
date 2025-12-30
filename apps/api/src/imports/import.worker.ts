@@ -34,12 +34,13 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
       IMPORTS_QUEUE_NAME,
       async (job: Job) => {
         if (job.name === 'import-csv') {
-          const { importRunId, filePath } = job.data as {
+          const { importRunId, filePath, priceMarginPercent } = job.data as {
             importRunId: string;
             filePath: string;
+            priceMarginPercent?: number;
           };
 
-          await this.handleImportJob(importRunId, filePath);
+          await this.handleImportJob(importRunId, filePath, priceMarginPercent);
           return;
         }
 
@@ -64,10 +65,18 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  async handleImportJob(importRunId: string, filePath: string) {
+  async handleImportJob(
+    importRunId: string,
+    filePath: string,
+    priceMarginPercent = 0
+  ) {
     await this.importService.markRunning(importRunId);
     try {
-      const stats = await this.importService.processImport(importRunId, filePath);
+      const stats = await this.importService.processImport(
+        importRunId,
+        filePath,
+        priceMarginPercent
+      );
       await this.importService.markSucceeded(importRunId, stats);
       await this.importsQueue.add('index-skus', { importRunId });
     } catch (error) {

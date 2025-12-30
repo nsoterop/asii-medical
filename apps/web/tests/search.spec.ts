@@ -47,4 +47,8 @@ test('search page renders results', async ({ page }) => {
   await page.goto('/search?q=mask');
   await expect(page.getByText('Test Mask')).toBeVisible();
   await expect(page.getByText('Acme').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Test Mask' })).toHaveAttribute(
+    'href',
+    '/product/2?itemId=1'
+  );
 });

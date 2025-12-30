@@ -13,6 +13,9 @@ test('logged-out users can access auth routes', async ({ page }) => {
 test('logged-out users are redirected away from protected routes', async ({ page }) => {
   await page.goto('/account');
   await expect(page).toHaveURL('/');
+
+  await page.goto('/admin');
+  await expect(page).toHaveURL('/');
 });
 
 test('logged-out users can access public routes', async ({ page }) => {

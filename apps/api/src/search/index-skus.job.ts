@@ -52,13 +52,16 @@ export class IndexSkusJob {
         isActive: sku.isActive
       }));
 
+      const index = this.searchService.getIndex(SKUS_INDEX_NAME);
+      await this.searchService.ensureSkuIndex();
+      const clearTask = await index.deleteAllDocuments();
+      await this.searchService.waitForTask(clearTask.taskUid);
+
       if (documents.length === 0) {
         this.statusService.setRunCounts(0, 0);
         return { fetched: 0, indexed: 0 };
       }
 
-      const index = this.searchService.getIndex(SKUS_INDEX_NAME);
-      await this.searchService.ensureSkuIndex();
       const task = await index.addDocuments(documents, { primaryKey: 'skuItemId' });
       await this.searchService.waitForTask(task.taskUid);
 

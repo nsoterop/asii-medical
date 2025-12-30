@@ -32,6 +32,7 @@ export default function Header() {
   const [isLoading, setIsLoading] = useState(false);
   const debouncedQuery = useDebouncedValue(query, 250);
   const hideSearch = pathname === '/search' || pathname === '/login' || pathname === '/signup';
+  const hideBrowse = pathname === '/search';
 
   useEffect(() => {
     if (debouncedQuery.trim().length < 2) {
@@ -228,6 +229,11 @@ export default function Header() {
                 ) : null}
               </form>
             ) : null}
+            {hideBrowse ? null : (
+              <Link href="/search" className={styles.browseButton}>
+                Browse
+              </Link>
+            )}
             <ProfilePopover />
             <CartPopover />
           </div>

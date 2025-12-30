@@ -269,7 +269,7 @@
 .readMore {
   border: none;
   background: none;
-  color: #1a5fd0;
+  color: #121212;
   padding: 0;
   cursor: pointer;
   font-size: 13px;
@@ -367,6 +367,10 @@
   justify-content: center;
 }
 
+.addButton:not(:disabled):hover {
+  background: #55657d;
+  border-color: #55657d;
+}
 .addSpinner {
   width: 18px;
   height: 18px;
@@ -473,7 +477,7 @@
 }
 
 .moreOptionsRow a {
-  color: #1a5fd0;
+  color: #121212;
   text-decoration: none;
 }
 
@@ -490,6 +494,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.secondaryButton:hover {
+  background: #f7f7f7;
 }
 
 .loading {

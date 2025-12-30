@@ -54,6 +54,10 @@
   justify-content: center;
 }
 
+.primaryButton:hover {
+  background: #55657d;
+}
+
 .secondaryButton {
   border-radius: 999px;
   border: 1px solid #d6d6d6;
@@ -67,6 +71,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.secondaryButton:hover {
+  background: #f7f7f7;
 }
 
 @media (min-width: 640px) {

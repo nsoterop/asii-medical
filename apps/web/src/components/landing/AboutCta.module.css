@@ -56,6 +56,10 @@
   justify-content: center;
 }
 
+.secondaryButton:hover {
+  background: #f7f7f7;
+}
+
 @media (min-width: 640px) {
   .actions {
     flex-direction: row;

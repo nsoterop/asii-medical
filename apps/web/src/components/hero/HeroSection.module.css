@@ -102,6 +102,10 @@
   text-decoration: none;
 }
 
+.primaryButton:hover {
+  background: #f5f5f5;
+}
+
 .secondaryButton {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -110,6 +114,10 @@
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
+}
+
+.secondaryButton:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 
 @media (max-width: 640px) {

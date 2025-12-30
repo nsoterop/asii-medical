@@ -670,7 +670,10 @@ export default function SearchPage() {
               )}
               <div>
                 <h2 className={styles.cardTitle}>
-                  <Link href={`/product/${hit.productId}`} className="text-link">
+                  <Link
+                    href={`/product/${hit.productId}?itemId=${hit.skuItemId}`}
+                    className="text-link"
+                  >
                     {hit.productName}
                   </Link>
                 </h2>

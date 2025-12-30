@@ -195,7 +195,7 @@ export class ImportService {
     return this.prisma.importRun.findUnique({ where: { id: importRunId } });
   }
 
-  async processImport(importRunId: string, filePath: string) {
+  async processImport(importRunId: string, filePath: string, priceMarginPercent = 0) {
 
     let rows: Record<string, string>[];
     try {
@@ -212,7 +212,7 @@ export class ImportService {
     const concurrency = Number(process.env.IMPORT_CONCURRENCY || 4);
     const chunks = this.chunkRows(rows, chunkSize);
     const results = await this.runWithConcurrency(chunks, concurrency, (chunk) =>
-      this.processChunk(importRunId, chunk)
+      this.processChunk(importRunId, chunk, priceMarginPercent)
     );
 
     let inserted = 0;
@@ -233,29 +233,37 @@ export class ImportService {
       await this.flushImportErrors(errorRows);
     }
 
-    if (categoryPaths.size > 0) {
-      const categoryNodes = buildCategoryNodes(Array.from(categoryPaths));
+    const categoryNodes = buildCategoryNodes(Array.from(categoryPaths));
+    await this.prisma.category.deleteMany();
+    if (categoryNodes.length > 0) {
       await this.prisma.category.createMany({
         data: categoryNodes,
         skipDuplicates: true
       });
-      this.categoryTreeService.invalidateCache();
     }
+    this.categoryTreeService.invalidateCache();
 
     // TODO: Scope by supplier when supplierId is introduced.
-    const deactivated = await this.prisma.sku.updateMany({
+    const removedSkus = await this.prisma.sku.deleteMany({
       where: {
-        isActive: true,
         lastSeenImportRunId: { not: importRunId }
-      },
-      data: { isActive: false }
+      }
+    });
+    await this.prisma.product.deleteMany({
+      where: { skus: { none: {} } }
+    });
+    await this.prisma.categoryPath.deleteMany({
+      where: { products: { none: {} } }
+    });
+    await this.prisma.manufacturer.deleteMany({
+      where: { products: { none: {} } }
     });
 
     return {
       totalRows: rows.length,
       inserted,
       updated,
-      deactivated: deactivated.count,
+      deactivated: removedSkus.count,
       errorCount: errorRows.length
     };
   }
@@ -286,7 +294,11 @@ export class ImportService {
     return results;
   }
 
-  private async processChunk(importRunId: string, chunk: RowChunk): Promise<ChunkResult> {
+  private async processChunk(
+    importRunId: string,
+    chunk: RowChunk,
+    priceMarginPercent: number
+  ): Promise<ChunkResult> {
     const parsedRows: ParsedRow[] = [];
     const errorRows: Prisma.ImportRowErrorCreateManyInput[] = [];
     const categoryPaths = new Set<string>();
@@ -294,7 +306,7 @@ export class ImportService {
     chunk.rows.forEach((row, index) => {
       const rowNumber = chunk.startIndex + index + 2;
       try {
-        const parsedRow = this.parseRow(row);
+        const parsedRow = this.parseRow(row, priceMarginPercent);
         if (parsedRow.categoryPathName) {
           categoryPaths.add(parsedRow.categoryPathName);
         } else if (parsedRow.missingCategoryPath) {
@@ -566,7 +578,7 @@ export class ImportService {
     await new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private parseRow(row: Record<string, string>) {
+  private parseRow(row: Record<string, string>, priceMarginPercent = 0) {
     const itemId = this.parseIntField(row.ItemID, 'ItemID');
     const productId = this.parseIntField(row.ProductID, 'ProductID');
     const manufacturerId = this.parseIntField(row.ManufacturerID, 'ManufacturerID');
@@ -583,7 +595,10 @@ export class ImportService {
       }
       categoryPathName = categoryPathNameRaw;
     }
-    const unitPrice = this.parseDecimalOptional(row.UnitPrice, 'UnitPrice');
+    const unitPrice = this.applyPriceMargin(
+      this.parseDecimalOptional(row.UnitPrice, 'UnitPrice'),
+      priceMarginPercent
+    );
     const availabilityRaw = this.toNullableString(row.Availability);
 
     return {
@@ -617,6 +632,19 @@ export class ImportService {
       brandId: this.toNullableString(row.BrandID),
       brandName: this.toNullableString(row.BrandName)
     };
+  }
+
+  private applyPriceMargin(unitPrice: Prisma.Decimal | null, priceMarginPercent: number) {
+    if (!unitPrice) {
+      return null;
+    }
+    if (!priceMarginPercent) {
+      return unitPrice;
+    }
+    const factor = new Prisma.Decimal(1).plus(
+      new Prisma.Decimal(priceMarginPercent).div(100)
+    );
+    return unitPrice.mul(factor).toDecimalPlaces(2);
   }
 
   private parseRequiredString(value: string | undefined, field: string) {

@@ -32,6 +32,7 @@ describe('IndexSkusJob', () => {
 
     const index = {
       updateSettings: jest.fn().mockResolvedValue(undefined),
+      deleteAllDocuments: jest.fn().mockResolvedValue({ taskUid: 2 }),
       addDocuments: jest.fn().mockResolvedValue({ taskUid: 1 })
     };
     const searchService = new SearchService();
@@ -45,6 +46,7 @@ describe('IndexSkusJob', () => {
     const job = new IndexSkusJob(prisma, searchService, statusService);
     const result = await job.run();
 
+    expect(index.deleteAllDocuments).toHaveBeenCalled();
     expect(index.addDocuments).toHaveBeenCalledWith([
       {
         skuItemId: 1001,

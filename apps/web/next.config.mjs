@@ -10,6 +10,14 @@ const nextConfig = {
       {
         source: '/api/admin/:path*',
         destination: `${process.env.API_PROXY_TARGET}/admin/:path*`
+      },
+      {
+        source: '/api/checkout/:path*',
+        destination: `${process.env.API_PROXY_TARGET}/checkout/:path*`
+      },
+      {
+        source: '/api/orders/:path*',
+        destination: `${process.env.API_PROXY_TARGET}/orders/:path*`
       }
     ];
   }

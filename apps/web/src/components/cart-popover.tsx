@@ -105,6 +105,8 @@ export default function CartPopover() {
 
   const totals = useMemo(() => getCartTotals(items), [items]);
 
+  const closePopover = () => setIsOpen(false);
+
   const openPopover = () => {
     const nextOpen = !isOpen;
     setIsOpen(nextOpen);
@@ -120,8 +122,13 @@ export default function CartPopover() {
   };
 
   const onViewCart = () => {
-    setIsOpen(false);
+    closePopover();
     router.push('/cart');
+  };
+
+  const onCheckout = () => {
+    closePopover();
+    router.push('/checkout');
   };
 
   return (
@@ -199,7 +206,12 @@ export default function CartPopover() {
               <button type="button" className={styles.cartViewButton} onClick={onViewCart}>
                 View cart
               </button>
-              <button type="button" className={styles.cartCheckoutButton} disabled>
+              <button
+                type="button"
+                className={styles.cartCheckoutButton}
+                onClick={onCheckout}
+                disabled={items.length === 0 || isLoading}
+              >
                 Checkout
               </button>
             </div>

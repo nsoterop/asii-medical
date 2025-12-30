@@ -1,0 +1,73 @@
+.page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 28px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.message {
+  margin: 0;
+  color: #444;
+  font-size: 15px;
+}
+
+.orderId {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.primaryLink {
+  border-radius: 8px;
+  border: 1px solid #414F64;
+  background: #414F64;
+  color: #fff;
+  padding: 10px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.primaryLink:hover {
+  background: #55657d;
+  border-color: #55657d;
+}
+
+.secondaryLink {
+  border-radius: 8px;
+  border: 1px solid #d1d1d1;
+  background: #fff;
+  color: #333;
+  padding: 10px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.secondaryLink:hover {
+  background: #f7f7f7;
+}

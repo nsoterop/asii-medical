@@ -1,0 +1,258 @@
+.page {
+  width: 100%;
+}
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #121212;
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.titleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.headerMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 320px;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summaryColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+}
+
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.muted {
+  margin: 0;
+  color: #666;
+  font-size: 14px;
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.itemDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemName {
+  font-weight: 600;
+  font-size: 15px;
+  color: #222;
+}
+
+.itemDescription {
+  font-size: 13px;
+  color: #666;
+}
+
+.itemMeta {
+  font-size: 12px;
+  color: #777;
+}
+
+.itemTotal {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111;
+  white-space: nowrap;
+}
+
+.shipments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shipmentRow {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.shipmentDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shipmentHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.shipmentCarrier {
+  font-size: 12px;
+  color: #555;
+}
+
+.shipmentMeta {
+  font-size: 12px;
+  color: #666;
+}
+
+.trackingLink {
+  color: #121212;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.trackingLink:hover {
+  text-decoration: underline;
+}
+
+.summaryRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+  color: #444;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+}
+
+.statusBadge {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.statusSuccess {
+  background: #eef7f0;
+  color: #1b5e20;
+  border-color: #c8e6c9;
+}
+
+.statusInfo {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-color: #bbdefb;
+}
+
+.statusPending {
+  background: #fff7e6;
+  color: #8d5a00;
+  border-color: #ffe0b2;
+}
+
+.statusProblem {
+  background: #fdecec;
+  color: #a61b1b;
+  border-color: #f4c7c7;
+}
+
+.total {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+.stateCard {
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+  font-size: 14px;
+  color: #555;
+}
+
+.stateError {
+  border-color: #f4c7c7;
+  background: #fdecec;
+  color: #a61b1b;
+}

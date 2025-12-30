@@ -4,9 +4,10 @@ import styles from './cart.module.css';
 
 type OrderSummaryCardProps = {
   subtotal: number;
+  canCheckout?: boolean;
 };
 
-export default function OrderSummaryCard({ subtotal }: OrderSummaryCardProps) {
+export default function OrderSummaryCard({ subtotal, canCheckout }: OrderSummaryCardProps) {
   return (
     <div className={styles.summaryCard} data-testid="order-summary">
       <h2 className={styles.summaryTitle}>Order summary</h2>
@@ -26,14 +27,15 @@ export default function OrderSummaryCard({ subtotal }: OrderSummaryCardProps) {
         <span>Total</span>
         <span data-testid="summary-total">{formatCurrency(subtotal)}</span>
       </div>
-      <button
-        type="button"
-        className={styles.summaryButton}
-        disabled
-        title="Checkout coming next"
-      >
-        Checkout
-      </button>
+      {canCheckout ? (
+        <Link className={styles.summaryButton} href="/checkout">
+          Checkout
+        </Link>
+      ) : (
+        <button type="button" className={styles.summaryButton} disabled>
+          Checkout
+        </button>
+      )}
       <Link className={`${styles.summaryLink} text-link`} href="/search">
         Continue shopping
       </Link>

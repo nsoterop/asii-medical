@@ -1,33 +1,50 @@
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AdminImportsController } from '../src/imports/admin-imports.controller';
-import { ImportService } from '../src/imports/import.service';
-import { IMPORTS_QUEUE } from '../src/imports/imports.constants';
+import { SupabaseAuthGuard } from '../src/auth/supabase-auth.guard';
+import { AdminGuard } from '../src/auth/admin.guard';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { UserStatus } from '@prisma/client';
 
-const mockImportService = {
-  listImportRuns: jest.fn().mockResolvedValue([]),
-  createImportRunWithId: jest.fn(),
-  getImportRun: jest.fn(),
-  listImportErrors: jest.fn(),
-  markFailedIfRunning: jest.fn().mockResolvedValue({ id: 'run_1', status: 'FAILED' })
-};
+const verifySupabaseJwt = jest.fn();
 
-const mockQueue = {
-  add: jest.fn()
-};
+jest.mock('../src/auth/supabase-jwt', () => ({
+  verifySupabaseJwt: (token: string) => verifySupabaseJwt(token)
+}));
 
-describe('Admin auth guard', () => {
+@Controller('admin-auth-test')
+class AdminAuthTestController {
+  @UseGuards(SupabaseAuthGuard, AdminGuard)
+  @Get()
+  getOk() {
+    return { ok: true };
+  }
+}
+
+describe('AdminGuard', () => {
   let app: INestApplication;
+  const mockPrisma = {
+    user: {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn()
+    },
+    $queryRaw: jest.fn()
+  };
 
   beforeAll(async () => {
-    process.env.ADMIN_SHARED_SECRET = 'test-secret';
+    process.env.SUPABASE_URL = 'https://example.supabase.co';
+    process.env.SUPABASE_JWKS_URL = 'https://example.supabase.co/auth/v1/.well-known/jwks.json';
+    process.env.SUPABASE_ISSUER = 'https://example.supabase.co/auth/v1';
+    process.env.SUPABASE_AUDIENCE = 'authenticated';
 
     const moduleRef = await Test.createTestingModule({
-      controllers: [AdminImportsController],
+      controllers: [AdminAuthTestController],
       providers: [
-        { provide: ImportService, useValue: mockImportService },
-        { provide: IMPORTS_QUEUE, useValue: mockQueue }
+        SupabaseAuthGuard,
+        AdminGuard,
+        { provide: PrismaService, useValue: mockPrisma }
       ]
     }).compile();
 
@@ -39,21 +56,47 @@ describe('Admin auth guard', () => {
     await app.close();
   });
 
-  it('returns 401 when missing admin secret', async () => {
-    await request(app.getHttpServer()).get('/admin/imports').expect(401);
+  beforeEach(() => {
+    verifySupabaseJwt.mockReset();
+    mockPrisma.user.findUnique.mockReset();
+    mockPrisma.user.create.mockReset();
+    mockPrisma.user.update.mockReset();
+    mockPrisma.$queryRaw.mockReset();
   });
 
-  it('returns 401 when admin secret is invalid', async () => {
-    await request(app.getHttpServer())
-      .get('/admin/imports')
-      .set('X-Admin-Secret', 'wrong')
-      .expect(401);
+  it('returns 401 when missing bearer token', async () => {
+    await request(app.getHttpServer()).get('/admin-auth-test').expect(401);
   });
 
-  it('marks import as failed when authorized', async () => {
+  it('returns 403 when user is not admin', async () => {
+    verifySupabaseJwt.mockResolvedValue({ sub: 'supabase-1', email: 'a@test.com' });
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'user_1',
+      email: 'a@test.com',
+      supabaseUserId: 'supabase-1',
+      status: UserStatus.ACTIVE
+    });
+    mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: false }]);
+
     await request(app.getHttpServer())
-      .post('/admin/imports/run_1/mark-failed')
-      .set('X-Admin-Secret', 'test-secret')
-      .expect(201);
+      .get('/admin-auth-test')
+      .set('Authorization', 'Bearer good-token')
+      .expect(403);
+  });
+
+  it('allows admin users', async () => {
+    verifySupabaseJwt.mockResolvedValue({ sub: 'supabase-1', email: 'a@test.com' });
+    mockPrisma.user.findUnique.mockResolvedValue({
+      id: 'user_1',
+      email: 'a@test.com',
+      supabaseUserId: 'supabase-1',
+      status: UserStatus.ACTIVE
+    });
+    mockPrisma.$queryRaw.mockResolvedValue([{ is_admin: true }]);
+
+    await request(app.getHttpServer())
+      .get('/admin-auth-test')
+      .set('Authorization', 'Bearer good-token')
+      .expect(200);
   });
 });

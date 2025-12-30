@@ -7,9 +7,10 @@ import { ImportWorker } from './import.worker';
 import { importsQueueProvider } from './imports.queue';
 import { SearchModule } from '../search/search.module';
 import { CatalogModule } from '../catalog/catalog.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [SearchModule, CatalogModule],
+  imports: [SearchModule, CatalogModule, AuthModule],
   controllers: [AdminImportsController],
   providers: [
     importsQueueProvider,

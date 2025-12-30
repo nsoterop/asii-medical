@@ -8,7 +8,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 dotenv.config({ path: path.resolve(process.cwd(), '..', '.env') });
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
   const port = process.env.API_PORT ? Number(process.env.API_PORT) : 3001;
   await app.listen(port);
   const logger = new Logger('Bootstrap');

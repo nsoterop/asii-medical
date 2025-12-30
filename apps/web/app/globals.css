@@ -10,8 +10,12 @@ body {
   color: #121212;
 }
 
+a {
+  color: #121212;
+}
+
 .text-link {
-  color: inherit;
+  color: #121212;
   text-decoration: none;
   transition: filter 0.15s ease, color 0.15s ease;
 }

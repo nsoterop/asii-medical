@@ -17,6 +17,35 @@ pnpm infra:up
 pnpm dev
 ```
 
+### Square checkout env (sandbox-first)
+API (`apps/api/.env`):
+- `SQUARE_ENV` (`sandbox` or `production`)
+- `SQUARE_ACCESS_TOKEN`
+- `SQUARE_LOCATION_ID`
+- `SQUARE_WEBHOOK_SIGNATURE_KEY` (recommended for webhook verification)
+- `SQUARE_APP_ID`
+- `SQUARE_CURRENCY` (for example, `USD`)
+
+Web (`apps/web/.env.local`):
+- `NEXT_PUBLIC_SQUARE_APP_ID`
+- `NEXT_PUBLIC_SQUARE_LOCATION_ID`
+- `NEXT_PUBLIC_SQUARE_ENV` (`sandbox` or `production`)
+
+### Order processing env
+API (`apps/api/.env`):
+- `EMAIL_PROVIDER` (`log` or `resend`, default `log`)
+- `EMAIL_FROM` (required for `resend`)
+- `RESEND_API_KEY` (required for `resend`)
+
+### Square webhooks
+Configure a Square webhook subscription pointing to:
+- `https://<domain>/api/webhooks/square`
+
+Recommended events:
+- `payment.updated`
+- `refund.created`
+- `refund.updated`
+
 ## Database (Supabase Postgres)
 This repo uses a single database: Supabase Postgres. Prisma is the ORM and migration tool.
 
@@ -92,6 +121,15 @@ Edit `.env.prod` with production values:
 - `SQUARE_ENV` (`sandbox` or `production`)
 - `SQUARE_ACCESS_TOKEN`
 - `SQUARE_LOCATION_ID`
+- `SQUARE_WEBHOOK_SIGNATURE_KEY`
+- `SQUARE_APP_ID`
+- `SQUARE_CURRENCY`
+- `EMAIL_PROVIDER`
+- `EMAIL_FROM`
+- `RESEND_API_KEY`
+- `NEXT_PUBLIC_SQUARE_APP_ID`
+- `NEXT_PUBLIC_SQUARE_LOCATION_ID`
+- `NEXT_PUBLIC_SQUARE_ENV`
 - `DOMAIN` (public hostname for HTTPS)
 
 Tip: use your Supabase Postgres connection string for `DATABASE_URL`.

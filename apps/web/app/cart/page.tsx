@@ -67,6 +67,7 @@ export default function CartPage() {
   }, [isLoggedIn]);
 
   const totals = useMemo(() => getCartTotals(items), [items]);
+  const canCheckout = items.length > 0;
 
   return (
     <div className={styles.page}>
@@ -111,7 +112,7 @@ export default function CartPage() {
           )}
         </div>
         <div className={styles.summaryColumn}>
-          <OrderSummaryCard subtotal={totals.subtotal} />
+          <OrderSummaryCard subtotal={totals.subtotal} canCheckout={canCheckout} />
         </div>
       </div>
     </div>

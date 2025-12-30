@@ -42,13 +42,53 @@
   padding: 6px 8px;
 }
 
+.navLink {
+  color: #121212;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.navLink:hover {
+  background: #f4f4f4;
+}
+
+.browseButton {
+  border-radius: 999px;
+  border: 1px solid #d6d6d6;
+  color: #414F64;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  background: #fff;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  filter: none;
+}
+
+.browseButton:hover {
+  background: #f7f7f7;
+}
+
 .brand {
   font-size: 20px;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
-  color: #121212;
+  color: #414F64;
+  filter: none;
 }
+
+.brand:hover {
+  color: #414F64;
+  filter: none;
+}
+
 
 .searchPill {
   position: relative;
@@ -149,7 +189,7 @@
   padding: 10px 12px;
   background: #fafafa;
   font-size: 13px;
-  color: #1a5fd0;
+  color: #121212;
   text-decoration: none;
   display: block;
   border: none;
@@ -299,6 +339,11 @@
   cursor: pointer;
 }
 
+.cartViewButton:hover {
+  background: #55657d;
+  border-color: #55657d;
+}
+
 .cartCheckoutButton {
   flex: 1;
   border: 1px solid #e0e0e0;
@@ -308,6 +353,10 @@
   padding: 8px 12px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.cartCheckoutButton:not(:disabled):hover {
+  background: #fafafa;
 }
 
 @media (max-width: 900px) {

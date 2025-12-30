@@ -12,6 +12,7 @@ export default function AdminImportsPage() {
   const [uploading, setUploading] = useState(false);
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [priceMarginPercent, setPriceMarginPercent] = useState('');
 
   const hasActiveRun = useMemo(
     () => runs.some((run) => run.status === 'QUEUED' || run.status === 'RUNNING'),
@@ -63,9 +64,16 @@ export default function AdminImportsPage() {
       return;
     }
 
+    const trimmedMargin = priceMarginPercent.trim();
+    const marginValue = trimmedMargin === '' ? 0 : Number(trimmedMargin);
+    if (!Number.isFinite(marginValue) || marginValue < 0 || marginValue > 1000) {
+      setError('Profit margin must be a number between 0 and 1000.');
+      return;
+    }
+
     try {
       setUploading(true);
-      await uploadImport(file);
+      await uploadImport(file, marginValue);
       setFile(null);
       await fetchRuns();
     } catch (err) {
@@ -91,20 +99,61 @@ export default function AdminImportsPage() {
 
   return (
     <div className="admin-shell">
+      <div className="admin-row" style={{ justifyContent: 'space-between' }}>
+        <div className="admin-row">
+          <Link href="/admin/imports" className="admin-link active">
+            Imports
+          </Link>
+          <Link href="/admin/orders" className="admin-link">
+            Orders
+          </Link>
+          <Link href="/admin/products" className="admin-link">
+            Product Updates
+          </Link>
+        </div>
+      </div>
       <h1>Import Runs</h1>
 
       <div className="admin-card">
-        <form onSubmit={onSubmit} className="admin-row">
-          <input
-            className="admin-input"
-            type="file"
-            accept=".csv"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          />
+        <form
+          onSubmit={onSubmit}
+          className="admin-row"
+          style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}
+        >
+          <div className="admin-field" style={{ minWidth: 220 }}>
+            <label htmlFor="import-file">CSV file</label>
+            <input
+              id="import-file"
+              className="admin-input"
+              type="file"
+              accept=".csv"
+              onChange={(event) => {
+                setFile(event.target.files?.[0] ?? null);
+                setError('');
+              }}
+            />
+          </div>
+          <div className="admin-field" style={{ minWidth: 180 }}>
+            <label htmlFor="price-margin">Profit margin (%)</label>
+            <input
+              id="price-margin"
+              className="admin-input"
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0"
+              value={priceMarginPercent}
+              onChange={(event) => {
+                setPriceMarginPercent(event.target.value);
+                setError('');
+              }}
+            />
+          </div>
           <button className="admin-button" type="submit" disabled={uploading}>
             {uploading ? 'Uploading...' : 'Upload CSV'}
           </button>
         </form>
+        <p className="admin-muted">Margin applies to CSV UnitPrice before import.</p>
         {error ? <p className="admin-muted">{error}</p> : null}
       </div>
 
