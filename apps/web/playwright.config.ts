@@ -87,6 +87,12 @@ export default defineConfig({
     baseURL: 'http://localhost:3000',
     headless: !!process.env.CI,
   },
+  reporter: process.env.CI
+    ? [
+        ['list'],
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+      ]
+    : [['list']],
   webServer: {
     command: `${pnpmCommand} -C ${webDir} dev`,
     url: 'http://localhost:3000/health',

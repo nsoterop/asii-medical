@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Restore turbo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
+      - name: Lint
+        run: pnpm -w lint
+
+      - name: Typecheck
+        run: pnpm -w typecheck
+
+      - name: Unit tests (API)
+        run: pnpm --filter @asii/api test:unit
+
+  prisma_migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma migrate deploy
+        run: pnpm --filter @asii/api db:ci
+
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      meilisearch:
+        image: getmeili/meilisearch:v1.11.1
+        env:
+          MEILI_MASTER_KEY: dev-master-key-change-me
+        ports:
+          - 7700:7700
+        options: >-
+          --health-cmd "wget --no-verbose --spider http://localhost:7700/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PAYMENTS_PROVIDER: mock
+      NEXT_PUBLIC_PAYMENTS_PROVIDER: mock
+      MEILISEARCH_HOST: http://localhost:7700
+      MEILISEARCH_API_KEY: dev-master-key-change-me
+      MEILI_URL: http://localhost:7700
+      MEILI_MASTER_KEY: dev-master-key-change-me
+      REDIS_URL: redis://localhost:6379
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key
+      NEXT_PUBLIC_SQUARE_ENV: sandbox
+      SUPABASE_URL: http://localhost:54321
+      SUPABASE_JWKS_URL: http://localhost:54321/auth/v1/.well-known/jwks.json
+      SUPABASE_ISSUER: http://localhost:54321/auth/v1
+      SUPABASE_AUDIENCE: authenticated
+      E2E: true
+      PLAYWRIGHT: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @asii/web exec playwright install --with-deps
+
+      - name: Playwright e2e
+        run: pnpm --filter @asii/web test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload API logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-logs
+          path: apps/api/*.log
+          if-no-files-found: ignore
