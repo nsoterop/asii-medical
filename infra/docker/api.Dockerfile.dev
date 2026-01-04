@@ -4,6 +4,8 @@ ENV NODE_ENV=development
 
 WORKDIR /repo
 
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
+
 RUN corepack enable
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
@@ -15,4 +17,4 @@ RUN pnpm install
 
 EXPOSE 3001
 
-CMD ["pnpm", "--filter", "@asii/api", "dev"]
+CMD ["sh", "-c", "pnpm --filter @asii/api db:generate && pnpm --filter @asii/api dev"]

@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { verifySupabaseJwt } from './supabase-jwt';
@@ -19,14 +25,17 @@ export class SupabaseAuthGuard implements CanActivate {
   constructor(private readonly prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const logger = new Logger(SupabaseAuthGuard.name);
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const header = request.headers.authorization;
     if (!header || !header.startsWith('Bearer ')) {
+      logger.warn('Missing bearer token');
       throw new UnauthorizedException('Missing bearer token');
     }
 
     const token = header.slice('Bearer '.length).trim();
     if (!token) {
+      logger.warn('Empty bearer token');
       throw new UnauthorizedException('Missing bearer token');
     }
 
@@ -59,6 +68,8 @@ export class SupabaseAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      logger.warn(`JWT verification failed: ${message}`);
       throw new UnauthorizedException('Invalid token');
     }
   }

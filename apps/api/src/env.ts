@@ -17,56 +17,58 @@ if (!process.env.MEILI_MASTER_KEY && process.env.MEILISEARCH_API_KEY) {
   process.env.MEILI_MASTER_KEY = process.env.MEILISEARCH_API_KEY;
 }
 
+if (!process.env.PAYMENTS_PROVIDER) {
+  process.env.PAYMENTS_PROVIDER = process.env.NODE_ENV === 'test' ? 'mock' : 'square';
+}
+
+const emptyToUndefined = (value: unknown) =>
+  typeof value === 'string' && value.trim() === '' ? undefined : value;
+
 const supabaseUrl = process.env.SUPABASE_URL?.replace(/\/+$/, '');
 if (supabaseUrl) {
-  if (
-    !process.env.SUPABASE_JWKS_URL ||
-    process.env.SUPABASE_JWKS_URL.includes('${')
-  ) {
+  if (!process.env.SUPABASE_JWKS_URL || process.env.SUPABASE_JWKS_URL.includes('${')) {
     process.env.SUPABASE_JWKS_URL = `${supabaseUrl}/auth/v1/.well-known/jwks.json`;
   }
-  if (
-    !process.env.SUPABASE_ISSUER ||
-    process.env.SUPABASE_ISSUER.includes('${')
-  ) {
+  if (!process.env.SUPABASE_ISSUER || process.env.SUPABASE_ISSUER.includes('${')) {
     process.env.SUPABASE_ISSUER = `${supabaseUrl}/auth/v1`;
   }
 }
 
 const envSchema = z
   .object({
-    API_PORT: z.string().min(1).optional(),
-    DATABASE_URL: z.string().min(1).optional(),
-    ADMIN_SHARED_SECRET: z.string().min(1).optional(),
-    REDIS_URL: z.string().min(1).optional(),
-    MEILI_URL: z.string().min(1).optional(),
-    MEILI_MASTER_KEY: z.string().min(1).optional(),
-    SUPABASE_URL: z.string().url(),
-    SUPABASE_JWKS_URL: z.string().url(),
-    SUPABASE_ISSUER: z.string().url(),
-    SUPABASE_AUDIENCE: z.string().min(1),
-    SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+    API_PORT: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    DATABASE_URL: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    ADMIN_SHARED_SECRET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    REDIS_URL: z.preprocess(emptyToUndefined, z.string().min(1)),
+    MEILI_URL: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    MEILI_MASTER_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SUPABASE_URL: z.preprocess(emptyToUndefined, z.string().url()),
+    SUPABASE_JWKS_URL: z.preprocess(emptyToUndefined, z.string().url()),
+    SUPABASE_ISSUER: z.preprocess(emptyToUndefined, z.string().url()),
+    SUPABASE_AUDIENCE: z.preprocess(emptyToUndefined, z.string().min(1)),
+    SUPABASE_JWT_SECRET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SUPABASE_SERVICE_ROLE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     PAYMENTS_PROVIDER: z.enum(['square', 'mock']).default('square'),
-    SQUARE_ENV: z.enum(['sandbox', 'production']),
-    SQUARE_ACCESS_TOKEN: z.string().min(1).optional(),
-    SQUARE_LOCATION_ID: z.string().min(1).optional(),
-    SQUARE_WEBHOOK_SIGNATURE_KEY: z.string().min(1).optional(),
-    SQUARE_APP_ID: z.string().min(1).optional(),
-    SQUARE_CURRENCY: z.string().min(1).default('USD'),
+    SQUARE_ENV: z.enum(['sandbox', 'production']).default('sandbox'),
+    SQUARE_ACCESS_TOKEN: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SQUARE_LOCATION_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SQUARE_WEBHOOK_SIGNATURE_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SQUARE_APP_ID: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    SQUARE_CURRENCY: z.preprocess(emptyToUndefined, z.string().min(1)).default('USD'),
     TAX_PROVIDER: z.enum(['none', 'manual']).default('none'),
-    TAX_STATE_RATES: z.string().min(1).optional(),
-    TAX_ORIGIN_COUNTRY: z.string().min(2).default('US'),
-    TAX_ORIGIN_STATE: z.string().min(1).optional(),
-    TAX_ORIGIN_ZIP: z.string().min(1).optional(),
-    TAX_ORIGIN_CITY: z.string().min(1).optional(),
-    TAX_ORIGIN_STREET: z.string().min(1).optional(),
+    TAX_STATE_RATES: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    TAX_ORIGIN_COUNTRY: z.preprocess(emptyToUndefined, z.string().min(2)).default('US'),
+    TAX_ORIGIN_STATE: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    TAX_ORIGIN_ZIP: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    TAX_ORIGIN_CITY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    TAX_ORIGIN_STREET: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
     EMAIL_PROVIDER: z.enum(['log', 'resend']).default('log'),
-    EMAIL_FROM: z.string().min(1).optional(),
-    RESEND_API_KEY: z.string().min(1).optional(),
-    IMPORT_BATCH_SIZE: z.string().min(1).optional(),
-    IMPORT_CONCURRENCY: z.string().min(1).optional(),
-    IMPORT_RUN_STUCK_MINUTES: z.string().min(1).optional(),
-    IMPORT_WORKER_ENABLED: z.string().min(1).optional(),
+    EMAIL_FROM: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    RESEND_API_KEY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    IMPORT_BATCH_SIZE: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    IMPORT_CONCURRENCY: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    IMPORT_RUN_STUCK_MINUTES: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
+    IMPORT_WORKER_ENABLED: z.preprocess(emptyToUndefined, z.string().min(1).optional()),
   })
   .superRefine((value, ctx) => {
     const isTest = process.env.NODE_ENV === 'test';

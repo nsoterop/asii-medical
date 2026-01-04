@@ -18,13 +18,22 @@ export default function LoginPage() {
     event.preventDefault();
     setError(null);
     setLoading(true);
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     setLoading(false);
     if (signInError) {
       setError(signInError.message);
+      return;
+    }
+    const user = data.user;
+    const emailConfirmed = Boolean(
+      user?.email_confirmed_at ?? (user as { confirmed_at?: string | null } | null)?.confirmed_at,
+    );
+    if (!emailConfirmed) {
+      await supabase.auth.signOut();
+      setError('Please confirm your email before signing in.');
       return;
     }
     router.push('/search');

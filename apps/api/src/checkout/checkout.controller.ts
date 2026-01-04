@@ -42,8 +42,8 @@ export class CheckoutController {
       throw new BadRequestException('Missing auth context.');
     }
 
-    if (!body?.cartId || !body?.sourceId || !body?.shippingAddress) {
-      throw new BadRequestException('cartId, sourceId, and shippingAddress are required.');
+    if (!body?.cartId || !body?.shippingAddress) {
+      throw new BadRequestException('cartId and shippingAddress are required.');
     }
 
     const buyerEmail =

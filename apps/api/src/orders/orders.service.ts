@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OrderStatus, Prisma, ShipmentStatus } from '@prisma/client';
-import type { Currency } from 'square';
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../notifications/email.service';
-import { SquareService } from '../square/square.service';
 import { buildRefundIdempotencyKey, decimalToCents } from '../checkout/checkout.utils';
+import { PAYMENTS_CLIENT } from '../payments/payments.constants';
+import type { PaymentsClient } from '../payments/payments.types';
 
 const OPEN_ORDER_STATUSES: OrderStatus[] = [
   OrderStatus.PAID,
@@ -19,7 +19,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
-    private readonly squareService: SquareService,
+    @Inject(PAYMENTS_CLIENT) private readonly paymentsClient: PaymentsClient,
   ) {}
 
   async listUserOrders(userId: string, status?: string) {
@@ -290,19 +290,19 @@ export class OrdersService {
 
     if (shouldRefund && order.squarePaymentId) {
       try {
-        const refund = await this.squareService.refundPayment({
+        const refund = await this.paymentsClient.refundPayment({
           paymentId: order.squarePaymentId,
           amountCents: decimalToCents(order.total),
-          currency: order.currency as Currency,
+          currency: order.currency,
           idempotencyKey: buildRefundIdempotencyKey(order.id, order.squarePaymentId),
           reason: `Canceled order ${order.id}`,
         });
         refundId = refund.id ?? null;
         nextStatus = OrderStatus.REFUNDED;
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Square refund failed.';
-        this.logger.warn(`Square refund failed for order ${order.id}: ${message}`);
-        throw new BadRequestException('Square refund failed. Order was not canceled.');
+        const message = error instanceof Error ? error.message : 'Refund failed.';
+        this.logger.warn(`Refund failed for order ${order.id}: ${message}`);
+        throw new BadRequestException('Refund failed. Order was not canceled.');
       }
     }
 
@@ -316,7 +316,7 @@ export class OrdersService {
           orderId: order.id,
           from: order.status,
           to: nextStatus,
-          note: refundId ? `Square refund ${refundId}` : undefined,
+          note: refundId ? `Refund ${refundId}` : undefined,
         },
       }),
     ];

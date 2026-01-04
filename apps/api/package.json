@@ -27,6 +27,7 @@
     "db:generate": "prisma generate",
     "db:ci": "prisma generate && prisma migrate deploy && prisma migrate status",
     "db:seed": "tsx prisma/seed.ts",
+    "db:e2e:reset": "tsx prisma/e2e-reset.ts",
     "db:studio": "prisma studio"
   },
   "dependencies": {

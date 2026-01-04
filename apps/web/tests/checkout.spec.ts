@@ -26,21 +26,6 @@ test.describe('checkout', () => {
   });
 
   test('checkout renders and pay triggers payment call', async ({ page }) => {
-    await page.route('**/square.js', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/javascript',
-        body: `window.Square = {
-          payments: () => ({
-            card: async () => ({
-              attach: async () => {},
-              tokenize: async () => ({ status: 'OK', token: 'tok_test' })
-            })
-          })
-        };`,
-      });
-    });
-
     await page.route('**/api/cart', async (route) => {
       await route.fulfill({
         status: 200,
@@ -92,7 +77,7 @@ test.describe('checkout', () => {
     await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible();
     await page.fill('#checkout-shipping-address', '123 Main St, Austin, TX 78701');
     await page.waitForRequest('**/api/checkout/create');
-    const payButton = page.getByRole('button', { name: 'Pay now' });
+    const payButton = page.getByRole('button', { name: 'Mock Pay' });
     await expect(payButton).toBeEnabled();
 
     const [request] = await Promise.all([
@@ -102,11 +87,11 @@ test.describe('checkout', () => {
 
     const payload = request.postDataJSON() as {
       cartId: string;
-      sourceId: string;
       shippingAddress: string;
+      sourceId?: string;
     };
     expect(payload.cartId).toBe('cart_1');
-    expect(payload.sourceId).toBe('tok_test');
+    expect(payload.sourceId).toBeUndefined();
     expect(payload.shippingAddress).toBe('123 Main St, Austin, TX 78701');
   });
 });

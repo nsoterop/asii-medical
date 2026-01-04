@@ -9,7 +9,7 @@ import { ImportWorker } from '../src/imports/import.worker';
 import { CategoryTreeService } from '../src/catalog/category-tree.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { IndexSkusJob } from '../src/search/index-skus.job';
-import { Queue } from 'bullmq';
+import type IORedis from 'ioredis';
 
 type TestContext = {
   prisma: PrismaClient;
@@ -49,8 +49,8 @@ describeIfDb('Import pipeline', () => {
     const indexSkusJob = {
       run: jest.fn().mockResolvedValue(undefined),
     } as unknown as IndexSkusJob;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
-    context.importWorker = new ImportWorker(context.importService, indexSkusJob, queue);
+    const redisConnection = { ping: jest.fn() } as unknown as IORedis;
+    context.importWorker = new ImportWorker(context.importService, indexSkusJob, redisConnection);
   });
 
   beforeEach(async () => {
@@ -216,8 +216,8 @@ describeIfDb('Import pipeline', () => {
     const indexSkusJob = {
       run: jest.fn().mockResolvedValue(undefined),
     } as unknown as IndexSkusJob;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
-    const worker = new ImportWorker(importService, indexSkusJob, queue);
+    const redisConnection = { ping: jest.fn() } as unknown as IORedis;
+    const worker = new ImportWorker(importService, indexSkusJob, redisConnection);
 
     await expect(worker.handleImportJob(run.id, '/tmp/bad.csv')).rejects.toThrow('boom');
 
@@ -247,12 +247,11 @@ describe('ImportWorker enqueue behavior', () => {
     } as unknown as ImportService;
 
     const indexSkusJob = { run: jest.fn() } as unknown as IndexSkusJob;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
-
-    const worker = new ImportWorker(importService, indexSkusJob, queue);
+    const redisConnection = { ping: jest.fn() } as unknown as IORedis;
+    const worker = new ImportWorker(importService, indexSkusJob, redisConnection);
     await worker.handleImportJob('run_1', '/tmp/file.csv');
 
-    expect(queue.add).toHaveBeenCalledWith('index-skus', { importRunId: 'run_1' });
+    expect(indexSkusJob.run).toHaveBeenCalled();
   });
 
   it('does not enqueue index job on failure', async () => {
@@ -264,11 +263,10 @@ describe('ImportWorker enqueue behavior', () => {
     } as unknown as ImportService;
 
     const indexSkusJob = { run: jest.fn() } as unknown as IndexSkusJob;
-    const queue = { add: jest.fn().mockResolvedValue(undefined) } as unknown as Queue;
-
-    const worker = new ImportWorker(importService, indexSkusJob, queue);
+    const redisConnection = { ping: jest.fn() } as unknown as IORedis;
+    const worker = new ImportWorker(importService, indexSkusJob, redisConnection);
     await expect(worker.handleImportJob('run_2', '/tmp/file.csv')).rejects.toThrow('boom');
 
-    expect(queue.add).not.toHaveBeenCalled();
+    expect(indexSkusJob.run).not.toHaveBeenCalled();
   });
 });

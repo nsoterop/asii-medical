@@ -7,6 +7,8 @@ process.env.SQUARE_ENV = process.env.SQUARE_ENV ?? 'sandbox';
 process.env.SQUARE_ACCESS_TOKEN = process.env.SQUARE_ACCESS_TOKEN ?? 'test-square-token';
 process.env.SQUARE_LOCATION_ID = process.env.SQUARE_LOCATION_ID ?? 'test-square-location';
 process.env.SQUARE_CURRENCY = process.env.SQUARE_CURRENCY ?? 'USD';
+process.env.PAYMENTS_PROVIDER = process.env.PAYMENTS_PROVIDER ?? 'mock';
+process.env.REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
 process.env.SUPABASE_URL = process.env.SUPABASE_URL ?? 'https://example.supabase.co';
 process.env.SUPABASE_JWKS_URL =
   process.env.SUPABASE_JWKS_URL ?? 'https://example.supabase.co/auth/v1/.well-known/jwks.json';

@@ -1,8 +1,6 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CartStatus, OrderStatus, Prisma, ShipmentStatus } from '@prisma/client';
-import type { Currency } from 'square';
 import { PrismaService } from '../prisma/prisma.service';
-import { SquareService } from '../square/square.service';
 import { EmailService } from '../notifications/email.service';
 import {
   buildOrderIdempotencyKey,
@@ -13,6 +11,8 @@ import {
   parseUsShippingAddress,
 } from './checkout.utils';
 import { TaxService, type TaxQuote } from '../tax/tax.service';
+import { PAYMENTS_CLIENT } from '../payments/payments.constants';
+import type { PaymentsClient } from '../payments/payments.types';
 
 export type CheckoutCreateResponse = {
   cartId: string;
@@ -35,7 +35,7 @@ export class CheckoutService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly squareService: SquareService,
+    @Inject(PAYMENTS_CLIENT) private readonly paymentsClient: PaymentsClient,
     private readonly emailService: EmailService,
     private readonly taxService: TaxService,
   ) {}
@@ -92,7 +92,7 @@ export class CheckoutService {
   async payOrder(params: {
     supabaseUserId: string;
     cartId: string;
-    sourceId: string;
+    sourceId?: string;
     buyerEmail?: string | null;
     shippingAddress?: string | null;
   }): Promise<CheckoutPayResponse> {
@@ -146,6 +146,11 @@ export class CheckoutService {
     }
 
     const parsedAddress = this.parseShippingAddressOrThrow(params.shippingAddress);
+    const sourceId = params.sourceId?.trim() || undefined;
+
+    if (this.paymentsClient.requiresSourceId && !sourceId) {
+      throw new BadRequestException('Payment source is required.');
+    }
 
     const { subtotal } = calculateCartTotals(
       cart.items.map((item) => ({
@@ -212,7 +217,7 @@ export class CheckoutService {
       .join('|');
 
     try {
-      const squareOrder = await this.squareService.createSquareOrderFromCart({
+      const paymentOrder = await this.paymentsClient.createOrder({
         referenceId: cart.id,
         idempotencyKey: buildOrderIdempotencyKey(`${cart.id}:${lineItemSignature}`),
         lineItems,
@@ -226,23 +231,23 @@ export class CheckoutService {
           : undefined,
       });
 
-      const squareTotalCents = squareOrder.totalMoney?.amount
-        ? Number(squareOrder.totalMoney.amount)
+      const squareTotalCents = paymentOrder.totalMoney?.amount
+        ? Number(paymentOrder.totalMoney.amount)
         : amountCents;
 
-      const payment = await this.squareService.createPayment({
-        sourceId: params.sourceId,
-        squareOrderId: squareOrder.id,
+      const payment = await this.paymentsClient.createPayment({
+        sourceId,
+        orderId: paymentOrder.id,
         amountCents: squareTotalCents,
         currency,
-        idempotencyKey: buildPaymentIdempotencyKey(cart.id, params.sourceId),
+        idempotencyKey: buildPaymentIdempotencyKey(cart.id, sourceId ?? 'mock'),
         buyerEmail: params.buyerEmail,
       });
 
       const existingOrder = await this.prisma.order.findFirst({
         where: {
           userId: params.supabaseUserId,
-          OR: [{ squarePaymentId: payment.id }, { squareOrderId: squareOrder.id }],
+          OR: [{ squarePaymentId: payment.id }, { squareOrderId: paymentOrder.id }],
         },
         include: { items: true, shipments: true },
       });
@@ -272,7 +277,7 @@ export class CheckoutService {
         data: {
           userId: params.supabaseUserId,
           cartId: cart.id,
-          squareOrderId: squareOrder.id,
+          squareOrderId: paymentOrder.id,
           squarePaymentId: payment.id,
           status: OrderStatus.PAID,
           currency,
@@ -319,7 +324,7 @@ export class CheckoutService {
         receiptUrl: payment.receiptUrl ?? null,
       };
     } catch (error) {
-      this.logger.error('Square payment failed', error as Error);
+      this.logger.error('Payment failed', error as Error);
       throw new BadRequestException('Payment failed. Please try again.');
     }
   }
@@ -339,9 +344,9 @@ export class CheckoutService {
     };
   }
 
-  private resolveCurrency(items: Array<{ currency: string | null }>): Currency {
-    const fallback = this.squareService.getDefaultCurrency();
-    const currency = (items.find((item) => item.currency)?.currency ?? fallback) as Currency;
+  private resolveCurrency(items: Array<{ currency: string | null }>): string {
+    const fallback = this.paymentsClient.getDefaultCurrency();
+    const currency = items.find((item) => item.currency)?.currency ?? fallback;
 
     const mismatched = items.find((item) => item.currency && item.currency !== currency);
 

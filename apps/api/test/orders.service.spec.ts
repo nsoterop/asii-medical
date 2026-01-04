@@ -3,7 +3,7 @@ import { OrderStatus, ShipmentStatus } from '@prisma/client';
 import { OrdersService } from '../src/orders/orders.service';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { EmailService } from '../src/notifications/email.service';
-import { SquareService } from '../src/square/square.service';
+import type { PaymentsClient } from '../src/payments/payments.types';
 
 type OrderStub = {
   id: string;
@@ -41,7 +41,12 @@ type MockEmailService = {
   sendShippingConfirmation: jest.Mock;
 };
 
-type MockSquareService = {
+type MockPaymentsClient = {
+  provider: PaymentsClient['provider'];
+  requiresSourceId: boolean;
+  getDefaultCurrency: jest.Mock;
+  createOrder: jest.Mock;
+  createPayment: jest.Mock;
   refundPayment: jest.Mock;
 };
 
@@ -80,14 +85,19 @@ describe('OrdersService', () => {
     sendShippingConfirmation: jest.fn(),
   };
 
-  const squareService: MockSquareService = {
+  const paymentsClient: MockPaymentsClient = {
+    provider: 'square',
+    requiresSourceId: true,
+    getDefaultCurrency: jest.fn(),
+    createOrder: jest.fn(),
+    createPayment: jest.fn(),
     refundPayment: jest.fn(),
   };
 
   const service = new OrdersService(
     prisma as unknown as PrismaService,
     emailService as unknown as EmailService,
-    squareService as unknown as SquareService,
+    paymentsClient as unknown as PaymentsClient,
   );
 
   beforeEach(() => {
@@ -146,13 +156,13 @@ describe('OrdersService', () => {
         shipments: [],
       }),
     );
-    squareService.refundPayment.mockResolvedValue({ id: 'refund_1' });
+    paymentsClient.refundPayment.mockResolvedValue({ id: 'refund_1' });
     prisma.order.update.mockResolvedValue({ id: 'order_1' });
     prisma.orderStatusEvent.create.mockResolvedValue({ id: 'evt_1' });
 
     const result = await service.cancelOrder('order_1');
 
-    expect(squareService.refundPayment).toHaveBeenCalled();
+    expect(paymentsClient.refundPayment).toHaveBeenCalled();
     expect(prisma.order.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { status: OrderStatus.REFUNDED } }),
     );

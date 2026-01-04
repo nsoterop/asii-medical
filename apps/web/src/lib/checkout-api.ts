@@ -62,14 +62,23 @@ export const createCheckoutOrder = async (params: {
 
 export const payCheckoutOrder = async (params: {
   cartId: string;
-  sourceId: string;
+  sourceId?: string;
   buyerEmail?: string;
   shippingAddress: string;
 }): Promise<CheckoutPayResponse> => {
+  const payload: Record<string, unknown> = {
+    cartId: params.cartId,
+    buyerEmail: params.buyerEmail,
+    shippingAddress: params.shippingAddress,
+  };
+  if (params.sourceId) {
+    payload.sourceId = params.sourceId;
+  }
+
   const response = await authedFetch('/api/checkout/pay', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
+    body: JSON.stringify(payload),
   });
 
   if (!response.ok) {

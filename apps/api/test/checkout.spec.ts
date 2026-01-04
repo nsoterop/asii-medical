@@ -3,7 +3,7 @@ import { CartStatus, OrderStatus, Prisma } from '@prisma/client';
 import { CheckoutService } from '../src/checkout/checkout.service';
 import { buildPaymentIdempotencyKey } from '../src/checkout/checkout.utils';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { SquareService } from '../src/square/square.service';
+import type { PaymentsClient } from '../src/payments/payments.types';
 import { EmailService } from '../src/notifications/email.service';
 import { TaxService } from '../src/tax/tax.service';
 
@@ -35,10 +35,13 @@ const makeCartItem = (overrides?: Partial<CartItemSnapshot>): CartItemSnapshot =
 });
 
 describe('CheckoutService', () => {
-  const squareService = {
+  const paymentsClient: PaymentsClient = {
+    provider: 'square',
+    requiresSourceId: true,
     getDefaultCurrency: jest.fn().mockReturnValue('USD'),
-    createSquareOrderFromCart: jest.fn(),
+    createOrder: jest.fn(),
     createPayment: jest.fn(),
+    refundPayment: jest.fn(),
   };
 
   const emailService = {
@@ -78,7 +81,7 @@ describe('CheckoutService', () => {
 
   const service = new CheckoutService(
     prisma as unknown as PrismaService,
-    squareService as unknown as SquareService,
+    paymentsClient as unknown as PaymentsClient,
     emailService as unknown as EmailService,
     taxService as unknown as TaxService,
   );
@@ -111,7 +114,7 @@ describe('CheckoutService', () => {
 
     const result = await service.createCheckoutOrder('user_1', '123 Main St, Austin, TX 78701');
 
-    expect(squareService.createSquareOrderFromCart).not.toHaveBeenCalled();
+    expect(paymentsClient.createOrder).not.toHaveBeenCalled();
     expect(prisma.order.upsert).not.toHaveBeenCalled();
     expect(result).toEqual({
       cartId: 'cart_1',
@@ -175,8 +178,8 @@ describe('CheckoutService', () => {
       items: [makeCartItem({ cartId: 'cart_1', productId: 'product_1', variantId: 'variant_1' })],
     });
     taxService.calculateSalesTax.mockResolvedValue({ taxCents: 200, rate: 0.1 });
-    squareService.createSquareOrderFromCart.mockResolvedValue({ id: 'sq_order_1' });
-    squareService.createPayment.mockResolvedValue({
+    (paymentsClient.createOrder as jest.Mock).mockResolvedValue({ id: 'sq_order_1' });
+    (paymentsClient.createPayment as jest.Mock).mockResolvedValue({
       id: 'pay_1',
       receiptUrl: 'https://example.com',
     });
@@ -211,7 +214,7 @@ describe('CheckoutService', () => {
       shippingAddress: '123 Main St, Austin, TX 78701',
     });
 
-    expect(squareService.createPayment).toHaveBeenCalledWith(
+    expect(paymentsClient.createPayment).toHaveBeenCalledWith(
       expect.objectContaining({
         idempotencyKey: buildPaymentIdempotencyKey('cart_1', 'token_1'),
       }),

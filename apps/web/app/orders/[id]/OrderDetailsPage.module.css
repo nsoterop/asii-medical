@@ -3,16 +3,22 @@
 }
 
 .backLink {
-  display: inline-block;
-  margin-bottom: 12px;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #d1d1d1;
+  background: #fff;
+  font-size: 14px;
   font-weight: 600;
-  color: #121212;
+  color: #333;
   text-decoration: none;
 }
 
 .backLink:hover {
-  text-decoration: underline;
+  background: #f7f7f7;
 }
 
 .titleRow {

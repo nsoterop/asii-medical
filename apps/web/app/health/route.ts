@@ -1,3 +1,7 @@
-export const dynamic = 'force-dynamic';
-
-export const GET = () => new Response('ok', { status: 200 });
+export const GET = () => {
+  return new Response('ok', {
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+    },
+  });
+};

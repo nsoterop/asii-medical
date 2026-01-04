@@ -7,6 +7,7 @@ import styles from './header.module.css';
 import type { SearchResponse } from '../../lib/catalog-api';
 import CartPopover from './cart-popover';
 import ProfilePopover from './profile-popover';
+import { createBrowserSupabaseClient } from '../lib/supabase/browser';
 
 type Suggestion = SearchResponse['hits'][number];
 
@@ -25,16 +26,50 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Suggestion[]>([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const debouncedQuery = useDebouncedValue(query, 250);
+  const hideHeaderActions = pathname === '/login' || pathname === '/signup';
   const hideSearch = pathname === '/search' || pathname === '/login' || pathname === '/signup';
   const hideBrowse = pathname === '/search';
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user ?? null;
+      const emailConfirmed = Boolean(
+        user?.email_confirmed_at ?? (user as { confirmed_at?: string | null } | null)?.confirmed_at,
+      );
+      setIsLoggedIn(Boolean(user && emailConfirmed));
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null;
+      const emailConfirmed = Boolean(
+        user?.email_confirmed_at ?? (user as { confirmed_at?: string | null } | null)?.confirmed_at,
+      );
+      setIsLoggedIn(Boolean(user && emailConfirmed));
+    });
+    return () => listener.subscription.unsubscribe();
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setQuery('');
+      setResults([]);
+      setHighlightedIndex(-1);
+      setIsOpen(false);
+      setIsLoading(false);
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
     if (debouncedQuery.trim().length < 2) {
       setResults([]);
       setIsOpen(false);
@@ -77,7 +112,7 @@ export default function Header() {
     return () => {
       active = false;
     };
-  }, [debouncedQuery]);
+  }, [debouncedQuery, isLoggedIn]);
 
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
@@ -95,6 +130,9 @@ export default function Header() {
   const showDropdown = isOpen && hasQuery;
   const showFooter = hasQuery;
   const showEmpty = hasQuery && !isLoading && results.length === 0;
+  const showSearch = isLoggedIn && !hideSearch;
+  const showBrowse = isLoggedIn && !hideBrowse;
+  const showCart = isLoggedIn;
 
   const onSelect = (item: Suggestion) => {
     setIsOpen(false);
@@ -124,115 +162,119 @@ export default function Header() {
             ASii Medical
           </Link>
           <div className={styles.headerSpacer} />
-          <div className={styles.headerActions}>
-            {!hideSearch ? (
-              <form
-                className={styles.searchPill}
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  onSearchAll();
-                }}
-              >
-                <button type="submit" className={styles.searchIconButton} aria-label="Search">
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <path
-                      d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm7.7 12.3 3.5 3.5a1 1 0 0 1-1.4 1.4l-3.5-3.5a1 1 0 0 1 1.4-1.4Z"
-                      fill="currentColor"
-                    />
-                  </svg>
-                </button>
-                <input
-                  className={styles.searchInput}
-                  placeholder="Search"
-                  value={query}
-                  data-testid="header-search-input"
-                  onChange={(event) => {
-                    const next = event.target.value;
-                    setQuery(next);
-                    if (next.trim().length >= 2) {
-                      setIsOpen(true);
-                    } else {
-                      setIsOpen(false);
-                    }
+          {hideHeaderActions ? null : (
+            <div className={styles.headerActions}>
+              {showSearch ? (
+                <form
+                  className={styles.searchPill}
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    onSearchAll();
                   }}
-                  onFocus={() => {
-                    if (query.trim().length >= 2) {
-                      setIsOpen(true);
-                    }
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'ArrowDown') {
-                      if (results.length === 0) return;
-                      event.preventDefault();
-                      setIsOpen(true);
-                      setHighlightedIndex((prev) => Math.min(prev + 1, results.length - 1));
-                    } else if (event.key === 'ArrowUp') {
-                      if (results.length === 0) return;
-                      event.preventDefault();
-                      setIsOpen(true);
-                      setHighlightedIndex((prev) => Math.max(prev - 1, 0));
-                    } else if (event.key === 'Enter') {
-                      if (rawQuery.length < 2) return;
-                      event.preventDefault();
-                      if (highlightedItem) {
-                        onSelect(highlightedItem);
+                >
+                  <button type="submit" className={styles.searchIconButton} aria-label="Search">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path
+                        d="M11 4a7 7 0 1 1 0 14 7 7 0 0 1 0-14Zm0 2a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm7.7 12.3 3.5 3.5a1 1 0 0 1-1.4 1.4l-3.5-3.5a1 1 0 0 1 1.4-1.4Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </button>
+                  <input
+                    className={styles.searchInput}
+                    placeholder="Search"
+                    value={query}
+                    data-testid="header-search-input"
+                    onChange={(event) => {
+                      const next = event.target.value;
+                      setQuery(next);
+                      if (next.trim().length >= 2) {
+                        setIsOpen(true);
                       } else {
-                        onSearchAll();
+                        setIsOpen(false);
                       }
-                    } else if (event.key === 'Escape') {
-                      setIsOpen(false);
-                    }
-                  }}
-                />
+                    }}
+                    onFocus={() => {
+                      if (query.trim().length >= 2) {
+                        setIsOpen(true);
+                      }
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'ArrowDown') {
+                        if (results.length === 0) return;
+                        event.preventDefault();
+                        setIsOpen(true);
+                        setHighlightedIndex((prev) => Math.min(prev + 1, results.length - 1));
+                      } else if (event.key === 'ArrowUp') {
+                        if (results.length === 0) return;
+                        event.preventDefault();
+                        setIsOpen(true);
+                        setHighlightedIndex((prev) => Math.max(prev - 1, 0));
+                      } else if (event.key === 'Enter') {
+                        if (rawQuery.length < 2) return;
+                        event.preventDefault();
+                        if (highlightedItem) {
+                          onSelect(highlightedItem);
+                        } else {
+                          onSearchAll();
+                        }
+                      } else if (event.key === 'Escape') {
+                        setIsOpen(false);
+                      }
+                    }}
+                  />
 
-                {showDropdown ? (
-                  <div className={styles.dropdown} data-testid="search-suggestions">
-                    {isLoading ? <div className={styles.dropdownMessage}>Searching...</div> : null}
-                    {!isLoading &&
-                      results.map((item, index) => (
+                  {showDropdown ? (
+                    <div className={styles.dropdown} data-testid="search-suggestions">
+                      {isLoading ? (
+                        <div className={styles.dropdownMessage}>Searching...</div>
+                      ) : null}
+                      {!isLoading &&
+                        results.map((item, index) => (
+                          <button
+                            type="button"
+                            key={`${item.productId}-${item.skuItemId}`}
+                            className={`${styles.dropdownItem} ${
+                              highlightedIndex === index ? styles.dropdownItemActive : ''
+                            }`}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => onSelect(item)}
+                            data-testid="search-suggestion"
+                          >
+                            <div className={styles.itemTitle}>{item.productName}</div>
+                            {item.manufacturerName ? (
+                              <div className={styles.itemMeta}>{item.manufacturerName}</div>
+                            ) : null}
+                            {item.itemDescription ? (
+                              <div className={styles.itemDesc}>{item.itemDescription}</div>
+                            ) : null}
+                          </button>
+                        ))}
+                      {showEmpty ? <div className={styles.dropdownMessage}>No results</div> : null}
+                      {showFooter ? (
                         <button
                           type="button"
-                          key={`${item.productId}-${item.skuItemId}`}
-                          className={`${styles.dropdownItem} ${
-                            highlightedIndex === index ? styles.dropdownItemActive : ''
-                          }`}
+                          className={styles.dropdownFooter}
                           onMouseDown={(event) => event.preventDefault()}
-                          onClick={() => onSelect(item)}
-                          data-testid="search-suggestion"
+                          onClick={onSearchAll}
+                          data-testid="search-show-all"
                         >
-                          <div className={styles.itemTitle}>{item.productName}</div>
-                          {item.manufacturerName ? (
-                            <div className={styles.itemMeta}>{item.manufacturerName}</div>
-                          ) : null}
-                          {item.itemDescription ? (
-                            <div className={styles.itemDesc}>{item.itemDescription}</div>
-                          ) : null}
+                          Show all results
                         </button>
-                      ))}
-                    {showEmpty ? <div className={styles.dropdownMessage}>No results</div> : null}
-                    {showFooter ? (
-                      <button
-                        type="button"
-                        className={styles.dropdownFooter}
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={onSearchAll}
-                        data-testid="search-show-all"
-                      >
-                        Show all results
-                      </button>
-                    ) : null}
-                  </div>
-                ) : null}
-              </form>
-            ) : null}
-            {hideBrowse ? null : (
-              <Link href="/search" className={styles.browseButton}>
-                Browse
-              </Link>
-            )}
-            <ProfilePopover />
-            <CartPopover />
-          </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </form>
+              ) : null}
+              {showBrowse ? (
+                <Link href="/search" className={styles.browseButton}>
+                  Browse
+                </Link>
+              ) : null}
+              <ProfilePopover />
+              {showCart ? <CartPopover /> : null}
+            </div>
+          )}
         </div>
       </div>
     </header>

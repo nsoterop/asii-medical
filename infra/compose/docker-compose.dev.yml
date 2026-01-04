@@ -29,10 +29,15 @@ services:
     ports:
       - '3001:3001'
     env_file:
-      - ../../apps/api/.env.docker
+      - ../../apps/api/.env
     environment:
       CHOKIDAR_USEPOLLING: 'true'
       WATCHPACK_POLLING: 'true'
+      DATABASE_URL: postgresql://postgres:postgres@host.docker.internal:54322/postgres
+      SUPABASE_URL: http://host.docker.internal:54321
+      SUPABASE_JWKS_URL: http://host.docker.internal:54321/auth/v1/.well-known/jwks.json
+      REDIS_URL: redis://redis:6379
+      MEILI_URL: http://meilisearch:7700
     depends_on:
       redis:
         condition: service_healthy
@@ -50,10 +55,12 @@ services:
     ports:
       - '3000:3000'
     env_file:
-      - ../../apps/web/.env.docker
+      - ../../apps/web/.env.local
     environment:
       CHOKIDAR_USEPOLLING: 'true'
       WATCHPACK_POLLING: 'true'
+      API_PROXY_TARGET: http://api:3001
+      SUPABASE_URL: http://host.docker.internal:54321
     depends_on:
       api:
         condition: service_started

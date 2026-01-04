@@ -11,10 +11,12 @@ import { CheckoutModule } from './checkout/checkout.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { OrdersModule } from './orders/orders.module';
 import { AdminProductsModule } from './products/admin-products.module';
+import { QueuesModule } from './queues/queues.module';
 
 @Module({
   imports: [
     PrismaModule,
+    QueuesModule,
     SearchModule,
     CatalogModule,
     AdminSearchModule,

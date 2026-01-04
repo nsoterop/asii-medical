@@ -1,2 +1,1 @@
-export const IMPORTS_QUEUE = 'IMPORTS_QUEUE';
-export const IMPORTS_QUEUE_NAME = 'imports';
+export { IMPORTS_QUEUE, IMPORTS_QUEUE_NAME } from '../queues/queues.constants';

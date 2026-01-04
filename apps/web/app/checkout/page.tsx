@@ -19,6 +19,17 @@ type SquareCard = {
   attach: (selector: string) => Promise<void>;
   tokenize: () => Promise<{ status: string; token?: string; errors?: Array<{ message: string }> }>;
   destroy?: () => Promise<void> | void;
+  isCompletelyValid?: () => boolean;
+  addEventListener?: (event: string, handler: (event: SquareCardChangeEvent) => void) => void;
+};
+
+type SquareCardChangeEvent = {
+  detail?: {
+    currentState?: {
+      isCompletelyValid?: boolean;
+      isValid?: boolean;
+    };
+  };
 };
 
 declare global {
@@ -194,6 +205,7 @@ export default function CheckoutPage() {
   const [error, setError] = useState('');
   const [squareReady, setSquareReady] = useState(false);
   const [cardReady, setCardReady] = useState(false);
+  const [cardComplete, setCardComplete] = useState(false);
   const [details, setDetails] = useState<CheckoutDetails>({
     firstName: '',
     lastName: '',
@@ -207,6 +219,8 @@ export default function CheckoutPage() {
   const cardRef = useRef<SquareCard | null>(null);
   const debouncedShippingAddress = useDebouncedValue(details.shippingAddress, 500);
 
+  const paymentsProvider = process.env.NEXT_PUBLIC_PAYMENTS_PROVIDER ?? 'mock';
+  const isMockPayments = paymentsProvider === 'mock';
   const squareAppId = process.env.NEXT_PUBLIC_SQUARE_APP_ID;
   const squareLocationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID;
   const squareEnv = process.env.NEXT_PUBLIC_SQUARE_ENV === 'production' ? 'production' : 'sandbox';
@@ -244,6 +258,15 @@ export default function CheckoutPage() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (isMockPayments) {
+      return;
+    }
+    if (window.Square) {
+      setSquareReady(true);
+    }
+  }, [isMockPayments]);
 
   useEffect(() => {
     let active = true;
@@ -367,6 +390,9 @@ export default function CheckoutPage() {
     let cancelled = false;
 
     const initCard = async () => {
+      if (isMockPayments) {
+        return;
+      }
       if (!squareReady || cardRef.current) {
         return;
       }
@@ -388,6 +414,41 @@ export default function CheckoutPage() {
         if (!cancelled) {
           cardRef.current = card;
           setCardReady(true);
+          setCardComplete(false);
+          const updateCardCompletion = (event?: SquareCardChangeEvent) => {
+            const state = event?.detail?.currentState;
+            if (typeof state?.isCompletelyValid === 'boolean') {
+              setCardComplete(state.isCompletelyValid);
+              return;
+            }
+            if (typeof state?.isValid === 'boolean') {
+              setCardComplete(state.isValid);
+              return;
+            }
+            if (typeof card.isCompletelyValid === 'function') {
+              setCardComplete(card.isCompletelyValid());
+              return;
+            }
+            setCardComplete(false);
+          };
+
+          if (card.addEventListener) {
+            [
+              'change',
+              'inputClassAdded',
+              'inputClassRemoved',
+              'focusClassAdded',
+              'focusClassRemoved',
+              'errorClassAdded',
+              'errorClassRemoved',
+              'cardBrandChanged',
+              'postalCodeChanged',
+            ].forEach((eventName) => {
+              card.addEventListener?.(eventName, updateCardCompletion);
+            });
+          }
+
+          updateCardCompletion();
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Unable to initialize payment form.';
@@ -404,9 +465,11 @@ export default function CheckoutPage() {
       if (cardRef.current?.destroy) {
         cardRef.current.destroy();
       }
+      cardRef.current = null;
       setCardReady(false);
+      setCardComplete(false);
     };
-  }, [squareReady, squareAppId, squareLocationId]);
+  }, [isMockPayments, squareReady, squareAppId, squareLocationId]);
 
   const handlePay = async () => {
     const address = details.shippingAddress.trim();
@@ -415,7 +478,11 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!checkout || !cardRef.current) {
+    if (!checkout) {
+      return;
+    }
+
+    if (!isMockPayments && (!cardRef.current || !cardComplete)) {
       return;
     }
 
@@ -423,15 +490,30 @@ export default function CheckoutPage() {
     setError('');
 
     try {
-      const result = await cardRef.current.tokenize();
-      if (result.status !== 'OK' || !result.token) {
-        const message = result.errors?.[0]?.message || 'Card details could not be verified.';
-        throw new Error(message);
+      if (!isMockPayments) {
+        const card = cardRef.current;
+        if (!card) {
+          throw new Error('Payment form is not ready.');
+        }
+        const result = await card.tokenize();
+        if (result.status !== 'OK' || !result.token) {
+          const message = result.errors?.[0]?.message || 'Card details could not be verified.';
+          throw new Error(message);
+        }
+        const payment = await payCheckoutOrder({
+          cartId: checkout.cartId,
+          sourceId: result.token,
+          buyerEmail: details.email.trim() || undefined,
+          shippingAddress: address,
+        });
+        clearCartItems();
+        dispatchCartUpdate();
+        router.push(`/order/success?orderId=${payment.orderId}`);
+        return;
       }
 
       const payment = await payCheckoutOrder({
         cartId: checkout.cartId,
-        sourceId: result.token,
         buyerEmail: details.email.trim() || undefined,
         shippingAddress: address,
       });
@@ -453,14 +535,23 @@ export default function CheckoutPage() {
   const totalAmount = checkout ? checkout.amountCents / 100 : subtotal;
   const hasAddress = details.shippingAddress.trim().length > 0;
   const hasState = Boolean(extractUsStateFromAddress(details.shippingAddress));
+  const payDisabled =
+    loading ||
+    quoteLoading ||
+    paying ||
+    !checkout ||
+    (!isMockPayments && (!cardReady || !cardComplete));
+  const payLabel = paying ? 'Processing...' : isMockPayments ? 'Mock Pay' : 'Pay now';
 
   return (
     <div className={styles.page}>
-      <Script
-        src={squareScriptUrl}
-        strategy="afterInteractive"
-        onLoad={() => setSquareReady(true)}
-      />
+      {!isMockPayments ? (
+        <Script
+          src={squareScriptUrl}
+          strategy="afterInteractive"
+          onLoad={() => setSquareReady(true)}
+        />
+      ) : null}
       <div className={styles.titleRow}>
         <h1 className={styles.title}>Checkout</h1>
       </div>
@@ -578,18 +669,24 @@ export default function CheckoutPage() {
           </div>
           <div className={styles.card}>
             <h2 className={styles.sectionTitle}>Payment</h2>
-            <p className={styles.muted}>Enter your card details to complete the order.</p>
-            <div id="card-container" className={styles.cardContainer} />
+            <p className={styles.muted}>
+              {isMockPayments
+                ? 'Mock payments are enabled for this environment.'
+                : 'Enter your card details to complete the order.'}
+            </p>
+            {!isMockPayments ? <div id="card-container" className={styles.cardContainer} /> : null}
             {error ? <div className={styles.error}>{error}</div> : null}
             <button
               type="button"
               className={styles.payButton}
               onClick={handlePay}
-              disabled={loading || quoteLoading || paying || !checkout || !cardReady}
+              disabled={payDisabled}
             >
-              {paying ? 'Processing...' : 'Pay now'}
+              {payLabel}
             </button>
-            <p className={styles.disclaimer}>Payments are processed securely by Square.</p>
+            {!isMockPayments ? (
+              <p className={styles.disclaimer}>Payments are processed securely by Square.</p>
+            ) : null}
           </div>
         </div>
         <div className={styles.summaryColumn}>

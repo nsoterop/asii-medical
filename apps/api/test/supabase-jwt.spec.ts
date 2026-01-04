@@ -2,6 +2,7 @@ import { verifySupabaseJwt } from '../src/auth/supabase-jwt';
 
 jest.mock('jose', () => ({
   createRemoteJWKSet: jest.fn(() => 'jwks'),
+  decodeProtectedHeader: jest.fn(() => ({ alg: 'RS256' })),
   jwtVerify: jest.fn().mockResolvedValue({
     payload: { sub: 'supabase_123', email: 'user@example.com' },
   }),

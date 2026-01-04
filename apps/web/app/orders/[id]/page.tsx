@@ -116,7 +116,7 @@ export default function OrderDetailsPage() {
   return (
     <div className={styles.page}>
       <Link href="/orders" className={styles.backLink}>
-        &lt;- Back to orders
+        Back to orders
       </Link>
 
       <div className={styles.titleRow}>

@@ -3,7 +3,8 @@
   "private": true,
   "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "dev": "turbo run dev --parallel",
+    "dev": "pnpm dev:deps && turbo run dev --parallel",
+    "dev:deps": "docker compose -f infra/compose/docker-compose.dev.yml up -d redis meilisearch",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "format": "turbo run format",
@@ -19,7 +20,7 @@
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
     "dev:up": "pnpm -w supabase:start && docker compose -f infra/compose/docker-compose.dev.yml up --build",
-    "dev:down": "docker compose -f infra/compose/docker-compose.dev.yml down",
+    "dev:down": "docker compose -f infra/compose/docker-compose.dev.yml down && pnpm -w supabase:stop",
     "dev:logs": "docker compose -f infra/compose/docker-compose.dev.yml logs -f",
     "dev:reset": "docker compose -f infra/compose/docker-compose.dev.yml down -v && rm -rf infra/data/meili",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",

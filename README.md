@@ -49,6 +49,10 @@ Recommended events:
 ## Database (Supabase Postgres)
 This repo uses a single database: Supabase Postgres. Prisma is the ORM and migration tool.
 
+Recommended setup:
+- Dev: local Supabase via CLI.
+- Prod: hosted Supabase project.
+
 Set `DATABASE_URL` in `.env` to your Supabase connection string (direct connection is preferred for Prisma).
 
 Apply schema to Supabase:
@@ -68,6 +72,10 @@ pnpm supabase:status
 Update local env files with the values from `supabase status`:
 - `apps/api/.env.docker` (DATABASE_URL, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 - `apps/web/.env.docker` (NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY)
+
+If you are running without Docker, set these instead:
+- `apps/api/.env` (use `http://localhost:54321` and port `54322`)
+- `apps/web/.env.local` (use `http://localhost:54321`)
 
 Apply SQL in `supabase/` to your local Supabase database (if needed):
 ```bash
@@ -135,6 +143,9 @@ cp .env.example .env.prod
 
 Edit `.env.prod` with production values:
 - `DATABASE_URL`
+- `SUPABASE_URL`
+- `SUPABASE_AUDIENCE`
+- `SUPABASE_SERVICE_ROLE_KEY`
 - `REDIS_URL`
 - `MEILI_URL` (optional)
 - `MEILI_MASTER_KEY` (optional)
@@ -150,6 +161,8 @@ Edit `.env.prod` with production values:
 - `EMAIL_PROVIDER`
 - `EMAIL_FROM`
 - `RESEND_API_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_SQUARE_APP_ID`
 - `NEXT_PUBLIC_SQUARE_LOCATION_ID`
 - `NEXT_PUBLIC_SQUARE_ENV`

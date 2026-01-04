@@ -1,13 +1,12 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Job, Worker } from 'bullmq';
-import IORedis from 'ioredis';
+import type IORedis from 'ioredis';
 import { ImportService } from './import.service';
 import { IMPORTS_QUEUE_NAME } from './imports.constants';
 import { IndexSkusJob } from '../search/index-skus.job';
-import { Queue } from 'bullmq';
-import { IMPORTS_QUEUE } from './imports.constants';
 import { Inject } from '@nestjs/common';
 import { unlink } from 'fs/promises';
+import { REDIS_CONNECTION } from '../queues/queues.constants';
 
 @Injectable()
 export class ImportWorker implements OnModuleInit, OnModuleDestroy {
@@ -17,7 +16,7 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly importService: ImportService,
     private readonly indexSkusJob: IndexSkusJob,
-    @Inject(IMPORTS_QUEUE) private readonly importsQueue: Queue,
+    @Inject(REDIS_CONNECTION) private readonly redisConnection: IORedis,
   ) {}
 
   onModuleInit() {
@@ -26,9 +25,6 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
       this.logger.warn('Import worker disabled via IMPORT_WORKER_ENABLED');
       return;
     }
-
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
     this.worker = new Worker(
       IMPORTS_QUEUE_NAME,
@@ -51,7 +47,7 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
 
         this.logger.warn(`Unknown job ${job.name}`);
       },
-      { connection },
+      { connection: this.redisConnection },
     );
 
     this.worker.on('failed', (job, error) => {
@@ -74,7 +70,7 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
         priceMarginPercent,
       );
       await this.importService.markSucceeded(importRunId, stats);
-      await this.importsQueue.add('index-skus', { importRunId });
+      await this.runIndexAfterImport(importRunId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown import error';
       this.logger.error(`Import job failed for ${importRunId}: ${message}`);
@@ -87,6 +83,15 @@ export class ImportWorker implements OnModuleInit, OnModuleDestroy {
         const message = error instanceof Error ? error.message : 'Unknown error';
         this.logger.warn(`Failed to remove import file ${filePath}: ${message}`);
       }
+    }
+  }
+
+  private async runIndexAfterImport(importRunId: string) {
+    try {
+      await this.indexSkusJob.run();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown indexing error';
+      this.logger.error(`Indexing failed after import ${importRunId}: ${message}`);
     }
   }
 }

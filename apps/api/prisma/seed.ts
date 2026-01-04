@@ -15,13 +15,56 @@ const prisma = new PrismaClient();
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const SEED_PASSWORD = process.env.SEED_USER_PASSWORD ?? 'Password123!';
+const getSeedPassword = () => process.env.SEED_USER_PASSWORD ?? 'Password123!';
+
+const listSupabaseUsersByEmail = async (email: string, headers: Record<string, string>) => {
+  const lookupResponse = await fetch(
+    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
+    { headers },
+  );
+
+  if (!lookupResponse.ok) {
+    return [];
+  }
+
+  const data = (await lookupResponse.json()) as { users?: SupabaseUser[] } | SupabaseUser;
+  if (Array.isArray((data as { users?: SupabaseUser[] }).users)) {
+    return (data as { users?: SupabaseUser[] }).users?.filter((user) => Boolean(user?.id)) ?? [];
+  }
+  return (data as SupabaseUser)?.id ? [data as SupabaseUser] : [];
+};
+
+const deleteSupabaseUsersByEmail = async (
+  email: string,
+  headers: Record<string, string>,
+) => {
+  const users = await listSupabaseUsersByEmail(email, headers);
+  if (!users.length) {
+    return;
+  }
+
+  await Promise.all(
+    users.map(async (user) => {
+      if (!user.id) {
+        return;
+      }
+      await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${user.id}`, {
+        method: 'DELETE',
+        headers,
+      });
+    }),
+  );
+};
 
 const createSupabaseUser = async (
   email: string,
   password: string,
-  metadata: Record<string, unknown>
+  metadata: Record<string, unknown>,
+  attempt = 0
 ): Promise<SupabaseUser> => {
+  if (attempt > 2) {
+    throw new Error(`Supabase user creation exceeded retry limit for ${email}.`);
+  }
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for seeding users.');
   }
@@ -52,24 +95,41 @@ const createSupabaseUser = async (
     return created;
   }
 
-  const lookupResponse = await fetch(
-    `${SUPABASE_URL}/auth/v1/admin/users?email=${encodeURIComponent(email)}`,
-    {
+  const existingUsers = await listSupabaseUsersByEmail(email, headers);
+  const existing = existingUsers[0];
+  if (existing?.id) {
+    const updateResponse = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${existing.id}`, {
+      method: 'PUT',
       headers,
-    }
-  );
-
-  if (lookupResponse.ok) {
-    const data = (await lookupResponse.json()) as { users?: SupabaseUser[] } | SupabaseUser;
-    const existing = Array.isArray((data as { users?: SupabaseUser[] }).users)
-      ? (data as { users?: SupabaseUser[] }).users?.[0]
-      : (data as SupabaseUser);
-    if (existing?.id) {
+      body: JSON.stringify({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: metadata,
+      }),
+    });
+    if (updateResponse.ok) {
       return existing;
     }
+    const updateError = await updateResponse.text();
+    if (
+      updateError.includes('users_email_partial_key') ||
+      updateError.includes('duplicate key value')
+    ) {
+      await deleteSupabaseUsersByEmail(email, headers);
+      return createSupabaseUser(email, password, metadata, attempt + 1);
+    }
+    throw new Error(`Supabase update user failed for ${email}: ${updateError}`);
   }
 
   const errorText = await createResponse.text();
+  if (
+    errorText.includes('users_email_partial_key') ||
+    errorText.includes('duplicate key value')
+  ) {
+    await deleteSupabaseUsersByEmail(email, headers);
+    return createSupabaseUser(email, password, metadata, attempt + 1);
+  }
   throw new Error(`Supabase create user failed for ${email}: ${errorText}`);
 };
 
@@ -107,14 +167,45 @@ const upsertProfile = async (input: {
     console.warn(`Skipping is_admin update for ${input.email}: ${message}`);
   }
 
-  await prisma.user.upsert({
+  const existingBySupabase = await prisma.user.findUnique({
+    where: { supabaseUserId: input.id },
+  });
+  const existingByEmail = await prisma.user.findUnique({
     where: { email: input.email },
-    create: {
+  });
+
+  if (existingBySupabase) {
+    if (existingByEmail && existingByEmail.id !== existingBySupabase.id) {
+      await prisma.user.delete({ where: { id: existingByEmail.id } });
+    }
+
+    await prisma.user.update({
+      where: { id: existingBySupabase.id },
+      data: {
+        email: input.email,
+        supabaseUserId: input.id,
+        status: UserStatus.ACTIVE,
+      },
+    });
+
+    return;
+  }
+
+  if (existingByEmail) {
+    await prisma.user.update({
+      where: { id: existingByEmail.id },
+      data: {
+        email: input.email,
+        supabaseUserId: input.id,
+        status: UserStatus.ACTIVE,
+      },
+    });
+    return;
+  }
+
+  await prisma.user.create({
+    data: {
       email: input.email,
-      supabaseUserId: input.id,
-      status: UserStatus.ACTIVE,
-    },
-    update: {
       supabaseUserId: input.id,
       status: UserStatus.ACTIVE,
     },
@@ -122,14 +213,15 @@ const upsertProfile = async (input: {
 };
 
 const seedProfiles = async () => {
-  const adminEmail = 'admin@example.com';
-  const userEmail = 'user@example.com';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
+  const userEmail = process.env.SEED_USER_EMAIL ?? 'user@example.com';
 
-  const adminUser = await createSupabaseUser(adminEmail, SEED_PASSWORD, {
+  const seedPassword = getSeedPassword();
+  const adminUser = await createSupabaseUser(adminEmail, seedPassword, {
     first_name: 'Admin',
     last_name: 'User',
   });
-  const normalUser = await createSupabaseUser(userEmail, SEED_PASSWORD, {
+  const normalUser = await createSupabaseUser(userEmail, seedPassword, {
     first_name: 'Sample',
     last_name: 'User',
   });
@@ -213,7 +305,7 @@ const seedCatalog = async () => {
   });
 };
 
-const main = async () => {
+export const runSeed = async () => {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set before seeding.');
   }
@@ -222,12 +314,18 @@ const main = async () => {
   await seedCatalog();
 };
 
-main()
-  .catch((error) => {
+const run = async () => {
+  try {
+    await runSeed();
+  } catch (error) {
     // eslint-disable-next-line no-console
     console.error(error);
     process.exitCode = 1;
-  })
-  .finally(async () => {
+  } finally {
     await prisma.$disconnect();
-  });
+  }
+};
+
+if (require.main === module) {
+  void run();
+}

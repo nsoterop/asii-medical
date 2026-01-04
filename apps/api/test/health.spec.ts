@@ -1,11 +1,19 @@
 import { Test } from '@nestjs/testing';
-import { AppModule } from '../src/app.module';
 import { HealthController } from '../src/health.controller';
+import { REDIS_CONNECTION } from '../src/queues/queues.constants';
 
 describe('HealthController', () => {
   it('/health (GET)', async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
+      controllers: [HealthController],
+      providers: [
+        {
+          provide: REDIS_CONNECTION,
+          useValue: {
+            ping: jest.fn().mockResolvedValue('PONG'),
+          },
+        },
+      ],
     }).compile();
 
     const controller = moduleRef.get(HealthController);

@@ -1,9 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
-import IORedis from 'ioredis';
+import { Controller, Get, Inject } from '@nestjs/common';
+import type IORedis from 'ioredis';
 import { HealthStatus } from '@asii/shared';
+import { REDIS_CONNECTION } from './queues/queues.constants';
 
 @Controller()
 export class HealthController {
+  constructor(@Inject(REDIS_CONNECTION) private readonly redisConnection: IORedis) {}
+
   @Get('/health')
   async getHealth(): Promise<HealthStatus> {
     const [redis, meili] = await Promise.all([this.checkRedis(), this.checkMeili()]);
@@ -11,24 +14,11 @@ export class HealthController {
   }
 
   private async checkRedis() {
-    const redisUrl = process.env.REDIS_URL;
-    if (!redisUrl) {
-      return false;
-    }
-
-    const client = new IORedis(redisUrl, {
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-      enableOfflineQueue: false,
-    });
-
     try {
-      await client.ping();
+      await this.redisConnection.ping();
       return true;
     } catch {
       return false;
-    } finally {
-      client.disconnect();
     }
   }
 
