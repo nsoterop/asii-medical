@@ -134,7 +134,7 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-### 3) Upload code and configure env
+### 3) Upload code and configure env.
 ```bash
 git clone <your-repo-url> asii-medical
 cd asii-medical
