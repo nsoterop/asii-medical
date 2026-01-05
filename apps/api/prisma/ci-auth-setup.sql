@@ -17,6 +17,6 @@ BEGIN
     CREATE FUNCTION auth.uid() RETURNS uuid
       LANGUAGE sql
       STABLE
-      AS $$ SELECT NULL::uuid $$;
+      AS $fn$ SELECT NULL::uuid $fn$;
   END IF;
 END $$;
