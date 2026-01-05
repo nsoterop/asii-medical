@@ -61,7 +61,7 @@ pnpm --filter api db:migrate
 pnpm --filter api db:generate
 ```
 
-### Local Supabase (CLI)
+### Local Supabase (CLI).
 Install the Supabase CLI, then from the repo root:
 ```bash
 supabase init # one-time if supabase/config.toml is missing
