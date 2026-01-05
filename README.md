@@ -1,4 +1,4 @@
-# asii-medical
+# ASii Medical
 
 TypeScript monorepo with pnpm workspaces + Turborepo.
 
