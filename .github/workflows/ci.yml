@@ -13,13 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+          run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-
-      - name: Enable corepack
-        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -61,13 +63,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+          run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-
-      - name: Enable corepack
-        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -106,11 +110,6 @@ jobs:
           MEILI_MASTER_KEY: dev-master-key-change-me
         ports:
           - 7700:7700
-        options: >-
-          --health-cmd "wget --no-verbose --spider http://localhost:7700/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     env:
       PAYMENTS_PROVIDER: mock
       NEXT_PUBLIC_PAYMENTS_PROVIDER: mock
@@ -132,13 +131,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+          run_install: false
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
-
-      - name: Enable corepack
-        run: corepack enable
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
