@@ -10,6 +10,8 @@ concurrency:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v4
 
@@ -32,6 +34,12 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-
+
+      - name: Build shared package
+        run: pnpm --filter @asii/shared build
+
+      - name: Generate Prisma client (API)
+        run: pnpm --filter @asii/api db:generate
 
       - name: Lint
         run: pnpm -w lint
@@ -75,6 +83,18 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Create auth schema for migrations
+        run: |
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 <<'SQL'
+          CREATE SCHEMA IF NOT EXISTS auth;
+          CREATE TABLE IF NOT EXISTS auth.users (
+            id uuid PRIMARY KEY
+          );
+          SQL
 
       - name: Prisma migrate deploy
         run: pnpm --filter @asii/api db:ci
